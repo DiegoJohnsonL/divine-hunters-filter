@@ -1,0 +1,6 @@
+# Keep LF everywhere. The awk build script is parsed by Git-for-Windows awk, where a
+# stray CR becomes part of the line and silently breaks patterns anchored with $.
+* text=auto eol=lf
+
+# Audio is binary - never touch it.
+*.mp3 -text

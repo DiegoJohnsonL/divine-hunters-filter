@@ -1,0 +1,34 @@
+# This repo lives inside the live PoE2 game directory, which also holds save data,
+# game config and downloaded NeverSink base filters. So this is an ALLOWLIST:
+# ignore everything, then un-ignore only the filter project.
+#
+# Add a new tracked file by adding a matching "!" line below. Anything not listed
+# here stays out of the repo permanently.
+
+*
+
+!.gitignore
+!.gitattributes
+!README.md
+!CLAUDE.md
+!AGENTS.md
+
+# The filter itself (generated, but committed so the repo is usable as-is)
+!FinancialAdvisor Filter.filter
+
+# Build pipeline - the actual source of truth
+!_filter-build-script.awk
+!_filter-economy-update.ps1
+
+# Custom drop sounds referenced by the filter
+!hibdivine.mp3
+!HibOmenLight.mp3
+!Echoes.mp3
+
+# Explicitly excluded even though they sit beside the tracked files:
+#   *.bak, *.bak-*            previous builds
+#   _filter-economy-update.log run history
+#   _filter-cache/            intermediate build output
+#   OnlineFilters/            NeverSink base filters downloaded by the game
+#   poe2_production*          game config, mtx and save data
+#   LocalSave/ EShop/ ETrade/ BuildPlanner/ PassiveKeywordSearch/
