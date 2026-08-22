@@ -51,15 +51,16 @@ NR < 15 && /^#(name|version|realm|errors|hash|filterVersion|filterType|lastUpdat
 	print "# 13) Uniques, $tier->hideable (184 bases): left HIDDEN, as stock. Verified against live prices -"
 	print "#     the most valuable one is ~4ex, none above 0.05 div. The nightly economy script will"
 	print "#     promote any of them that climbs past 0.5 div, so nothing valuable stays buried."
-	print "# 14) Custom drop sounds on Divine Orb, Omen of Light and Omen of Abyssal Echoes. Each sits"
-	print "#     inside a multi-base rule, so each gets a single-base rule above its parent with the"
-	print "#     parent's styling copied verbatim - only the sound changes. Needs hibdivine.mp3,"
-	print "#     HibOmenLight.mp3 and Echoes.mp3 beside the .filter file."
+	print "# 14) Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes and Orb of"
+	print "#     Annulment. Each gets a single-base rule above its parent with the parent's styling"
+	print "#     copied verbatim. The annulment rule uses Continue so the stock Divine ding below it"
+	print "#     plays alongside the friend's voice recording. Needs hibdivine.mp3, HibOmenLight.mp3,"
+	print "#     Echoes.mp3 and OrbOfAnnulment.ogg beside the .filter file."
 	print "# 15) Gold: in maps only stacks of 5000+ show, and at font 30 instead of the stock 40. The"
 	print "#     2000+ rule is disabled. Levelling (AreaLevel <= 24 / <= 64) left at stock."
-	print "# 16) Quality currency: Arcanist's Etcher (caster weapons) and Glassblower's Bauble (flasks)"
-	print "#     hidden at AreaLevel >= 65. Armourer's Scrap and Blacksmith's Whetstone were already"
-	print "#     hidden by stock tier->d. Gemcutter's Prism left visible - it is tier->b, not chaff."
+	print "# 16) Quality currency: Gemcutter's Prism, Arcanist's Etcher (caster weapons) and Glassblower's"
+	print "#     Bauble (flasks) hidden at AreaLevel >= 65. Armourer's Scrap and Blacksmith's Whetstone"
+	print "#     were already hidden by stock tier->d. Levelling (AreaLevel <= 64) stays stock."
 	print "# 17) Exalted family + Vaal Orb (supersedes note 1). Plain Exalted Orb and Greater Exalted"
 	print "#     Orb are hidden at EVERY stack size. Vaal Orb shows only in stacks of 2+. Perfect"
 	print "#     Exalted Orb is untouched and still fires the stock tier->s alert - it is the only"
@@ -208,17 +209,21 @@ bumping {
 splint { if ($0 ~ /^[[:space:]]*$/) { splint = 0; print "" } next }
 
 # ---------- Custom drop sounds ----------
-# Divine Orb, Omen of Light and Omen of Abyssal Echoes each live inside a multi-base rule.
+# Divine Orb, Omen of Light, Omen of Abyssal Echoes and Orb of Annulment each live inside a
+# multi-base rule.
 # Each gets a single-base rule directly above its parent, styling copied verbatim so only the
-# sound differs. CustomAlertSoundOptional, not CustomAlertSound: a missing mp3 then falls back
-# to the default sound instead of breaking the whole filter load.
-function soundrule(title, cls, base, style, sound,   n, i, parts) {
+# sound differs. CustomAlertSoundOptional, not CustomAlertSound: a missing file then falls back
+# to the default sound instead of breaking the whole filter load. When cont is true, Continue
+# lets the parent rule also run; that is how Orb of Annulment gets the stock Divine ding in
+# addition to the friend's voice recording.
+function soundrule(title, cls, base, style, sound, cont,   n, i, parts) {
 	print "Show # [CUSTOM] " title " - custom drop sound"
 	print "\tClass == " cls
 	print "\tBaseType == \"" base "\""
 	n = split(style, parts, "|")
 	for (i = 1; i <= n; i++) print "\t" parts[i]
 	print "\tCustomAlertSoundOptional \"" sound "\" 300"
+	if (cont) print "\tContinue"
 	print ""
 }
 
@@ -240,6 +245,13 @@ function soundrule(title, cls, base, style, sound,   n, i, parts) {
 	print "# of Abyssal Echoes uses, but with the stock tier->a alert rather than Echoes.mp3, so the"
 	print "# Omen keeps its own voice line. Perfect Chaos and Perfect Exalted still keep the Divine"
 	print "# look; plain Chaos Orb keeps tier->b."
+	print "Hide # [CUSTOM] Gemcutter's Prism hidden in maps"
+	print "\tClass == \"Incubators\" \"Stackable Currency\""
+	print "\tBaseType == \"Gemcutter's Prism\""
+	print "\tAreaLevel >= 65"
+	print "\tSetFontSize 18"
+	print "\tSetBackgroundColor 20 20 0 0"
+	print ""
 	print "Show # [CUSTOM] Greater Chaos + Perfect Jeweller's - Abyssal Echoes styling, not Divine white"
 	print "\tClass == \"Incubators\" \"Stackable Currency\""
 	print "\tBaseType == \"Greater Chaos Orb\" \"Perfect Jeweller's Orb\""
@@ -274,6 +286,9 @@ function soundrule(title, cls, base, style, sound,   n, i, parts) {
 	soundrule("Divine Orb", "\"Incubators\" \"Stackable Currency\"", "Divine Orb", \
 	          "SetFontSize 45|SetTextColor 255 0 0 255|SetBorderColor 255 0 0 255|SetBackgroundColor 255 255 255 255|PlayEffect Red|MinimapIcon 0 Red Star", \
 	          "hibdivine.mp3")
+	soundrule("Orb of Annulment", "\"Incubators\" \"Stackable Currency\"", "Orb of Annulment", \
+	          "SetFontSize 45|SetTextColor 255 0 0 255|SetBorderColor 255 0 0 255|SetBackgroundColor 255 255 255 255|PlayEffect Red|MinimapIcon 0 Red Star", \
+	          "OrbOfAnnulment.ogg", 1)
 	print; next
 }
 

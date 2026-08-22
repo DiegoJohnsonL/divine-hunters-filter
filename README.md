@@ -58,16 +58,19 @@ and the walkthrough video [Hidden POE2 Setting: Filters in Rituals](https://www.
 
 ## Custom drop sounds
 
-Three rules use custom audio. These files must sit **beside** the `.filter`:
+Four rules use custom audio. These files must sit **beside** the `.filter`:
 
 | File | Plays for |
 |---|---|
 | `hibdivine.mp3` | Divine Orb |
 | `HibOmenLight.mp3` | Omen of Light |
 | `Echoes.mp3` | Omen of Abyssal Echoes |
+| `OrbOfAnnulment.ogg` | Orb of Annulment voice; the rule continues into the stock Divine ding |
 
 They are wired with `CustomAlertSoundOptional`, not `CustomAlertSound` — if a file goes
 missing the rule falls back to the default sound instead of breaking the whole filter load.
+The annulment rule also uses `Continue`, so the parent currency rule's built-in Divine sound
+plays after the voice recording. The other three assets already contain their full custom audio.
 
 ---
 
@@ -191,9 +194,9 @@ reproduced in the filter's own header. Summary:
 | 11 | Uniques: T3 + T3-boss shown, 5 optional rules enabled (9L parity) |
 | 12 | Economy crafting bases: only the ilvl 82 group survives |
 | 13 | Uniques `$tier->hideable`: left hidden, economy script promotes any that climb |
-| 14 | Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes |
+| 14 | Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes, Orb of Annulment |
 | 15 | Gold: maps show 5000+ only, at font 30. Levelling left at stock |
-| 16 | Quality currency (Arcanist's Etcher, Glassblower's Bauble) hidden at AreaLevel ≥ 65 |
+| 16 | Quality currency (Gemcutter's Prism, Arcanist's Etcher, Glassblower's Bauble) hidden at AreaLevel ≥ 65 |
 | 17 | Exalted Orb + Greater Exalted hidden at any stack; Vaal Orb only in stacks of 2+; Perfect Exalted untouched |
 | 18 | Greater Chaos Orb + Perfect Jeweller's Orb demoted from the white Divine look to the Abyssal Echoes styling; Perfect Chaos keeps Divine |
 
