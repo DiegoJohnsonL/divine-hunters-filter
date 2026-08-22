@@ -15,7 +15,7 @@ $audioFiles = @(
     'hibdivine.mp3'
     'HibOmenLight.mp3'
     'Echoes.mp3'
-    'OrbOfAnnulment.ogg'
+    'OrbOfAnnulment.mp3'
 )
 $requiredFiles = @($filterFile) + $audioFiles
 $missingFiles = @($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $sourceRoot $_)) })

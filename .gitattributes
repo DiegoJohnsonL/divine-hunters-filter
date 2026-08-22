@@ -5,3 +5,4 @@
 # Audio is binary - never touch it.
 *.mp3 -text
 *.ogg -text
+*.exe -text

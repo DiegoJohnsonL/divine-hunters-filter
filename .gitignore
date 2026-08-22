@@ -25,8 +25,12 @@
 !HibOmenLight.mp3
 !Echoes.mp3
 !OrbOfAnnulment.ogg
+!OrbOfAnnulment.mp3
 !Install-FinancialAdvisorFilter.ps1
 !Install-FinancialAdvisorFilter.cmd
+!FinancialAdvisorFilterSetup.cs
+!FinancialAdvisorFilterSetup.exe
+!Build-FinancialAdvisorSetup.ps1
 
 # Explicitly excluded even though they sit beside the tracked files:
 #   *.bak, *.bak-*            previous builds

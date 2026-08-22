@@ -55,7 +55,7 @@ NR < 15 && /^#(name|version|realm|errors|hash|filterVersion|filterType|lastUpdat
 	print "#     Annulment. Each gets a single-base rule above its parent with the parent's styling"
 	print "#     copied verbatim. The annulment rule uses Continue so the stock Divine ding below it"
 	print "#     plays alongside the friend's voice recording. Needs hibdivine.mp3, HibOmenLight.mp3,"
-	print "#     Echoes.mp3 and OrbOfAnnulment.ogg beside the .filter file."
+	print "#     Echoes.mp3 and OrbOfAnnulment.mp3 beside the .filter file."
 	print "# 15) Gold: in maps only stacks of 5000+ show, and at font 30 instead of the stock 40. The"
 	print "#     2000+ rule is disabled. Levelling (AreaLevel <= 24 / <= 64) left at stock."
 	print "# 16) Quality currency: Gemcutter's Prism, Arcanist's Etcher (caster weapons) and Glassblower's"
@@ -214,8 +214,8 @@ splint { if ($0 ~ /^[[:space:]]*$/) { splint = 0; print "" } next }
 # Each gets a single-base rule directly above its parent, styling copied verbatim so only the
 # sound differs. CustomAlertSoundOptional, not CustomAlertSound: a missing file then falls back
 # to the default sound instead of breaking the whole filter load. When cont is true, Continue
-# lets the parent rule also run; that is how Orb of Annulment gets the stock Divine ding in
-# addition to the friend's voice recording.
+# lets the parent rule also run; use it only when the custom file does not already contain the
+# parent alert sound. OrbOfAnnulment.mp3 is pre-mixed, so its rule does not use Continue.
 function soundrule(title, cls, base, style, sound, cont,   n, i, parts) {
 	print "Show # [CUSTOM] " title " - custom drop sound"
 	print "\tClass == " cls
@@ -288,7 +288,7 @@ function soundrule(title, cls, base, style, sound, cont,   n, i, parts) {
 	          "hibdivine.mp3")
 	soundrule("Orb of Annulment", "\"Incubators\" \"Stackable Currency\"", "Orb of Annulment", \
 	          "SetFontSize 45|SetTextColor 255 0 0 255|SetBorderColor 255 0 0 255|SetBackgroundColor 255 255 255 255|PlayEffect Red|MinimapIcon 0 Red Star", \
-	          "OrbOfAnnulment.ogg", 1)
+	          "OrbOfAnnulment.mp3")
 	print; next
 }
 

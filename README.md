@@ -18,12 +18,15 @@ Close Path of Exile 2 first. The destination folder is:
 
 Choose one option:
 
-### Recommended: installer wizard
+### Recommended: one-file installer
 
-1. Download the repository ZIP and extract **all** files (or clone the repository).
-2. Double-click `Install-FinancialAdvisorFilter.cmd`.
+1. Download `FinancialAdvisorFilterSetup.exe` from the repository (or download the ZIP and extract it).
+2. Double-click `FinancialAdvisorFilterSetup.exe`.
 3. Click **Next**, choose your PoE2 folder, leave Ritual filtering checked if wanted, and click
    **Install**.
+
+The EXE already contains the filter and all four custom sounds. No Git, PowerShell, or command
+prompt is required. `Install-FinancialAdvisorFilter.cmd` remains available as a script fallback.
 
 ### Option A: GitHub (requires Git)
 
@@ -38,7 +41,7 @@ Copy-Item -Path @(
   "$repo\hibdivine.mp3"
   "$repo\HibOmenLight.mp3"
   "$repo\Echoes.mp3"
-  "$repo\OrbOfAnnulment.ogg"
+  "$repo\OrbOfAnnulment.mp3"
 ) -Destination $game -Force
 ```
 
@@ -47,7 +50,7 @@ Copy-Item -Path @(
 1. Open the [GitHub repository](https://github.com/DiegoJohnsonL/poe2-financialadvisor-filter).
 2. Select **Code → Download ZIP**, then extract it.
 3. Copy `FinancialAdvisor Filter.filter`, `hibdivine.mp3`, `HibOmenLight.mp3`, `Echoes.mp3`, and
-   `OrbOfAnnulment.ogg` into the destination folder above.
+   `OrbOfAnnulment.mp3` into the destination folder above.
 
 Then:
 
@@ -65,19 +68,22 @@ Then:
    in `_filter-build-script.awk`.
 3. Remember that the first matching rule wins. Put an override above the stock rule it must beat;
    currency overrides that must survive economy re-tiering belong above `$tier->s`.
-4. Dry-run and validate the build:
+4. The public installer is `FinancialAdvisorFilterSetup.exe`, built from
+   `FinancialAdvisorFilterSetup.cs`. Rebuild it with `Build-FinancialAdvisorSetup.ps1` whenever
+   the filter or included sounds change.
+5. Dry-run and validate the filter build:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File "_filter-economy-update.ps1" -DryRun
    ```
 
-5. If the dry-run reports `structure : OK`, install the build:
+6. If the dry-run reports `structure : OK`, install the filter build:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File "_filter-economy-update.ps1"
    ```
 
-6. Verify the generated rule and its position, then tell the user to reload or reselect the filter
+7. Verify the generated rule and its position, then tell the user to reload or reselect the filter
    in-game. Keep generated output, cache files, and user-owned unrelated changes intact.
 
 ---
@@ -140,7 +146,7 @@ The GitHub and ZIP downloads include all four custom sound files. Keep them **be
 | `hibdivine.mp3` | Divine Orb |
 | `HibOmenLight.mp3` | Omen of Light |
 | `Echoes.mp3` | Omen of Abyssal Echoes |
-| `OrbOfAnnulment.ogg` | Orb of Annulment voice; the rule continues into the stock Divine ding |
+| `OrbOfAnnulment.mp3` | Orb of Annulment voice; the rule continues into the stock Divine ding |
 
 They are wired with `CustomAlertSoundOptional` as a safety fallback, but the intended installation
 includes all four files.
@@ -285,6 +291,10 @@ reproduced in the filter's own header. Summary:
 | `FinancialAdvisor Filter.filter.bak` | Previous build, kept automatically on install |
 | `_filter-build-script.awk` | **Source of truth** for personal customisations |
 | `_filter-economy-update.ps1` | Build + economy pipeline |
+| `FinancialAdvisorFilterSetup.exe` | One-file Windows installer; contains the filter and custom sounds |
+| `FinancialAdvisorFilterSetup.cs` | Source for the Windows installer |
+| `Build-FinancialAdvisorSetup.ps1` | Rebuilds the one-file installer EXE |
+| `Install-FinancialAdvisorFilter.cmd` | Script-based installer fallback |
 | `_filter-economy-update.log` | Run history |
 | `_filter-cache\staged.filter` | Intermediate build output |
 | `_filter-cache\uniques.aspects.json` | Cached NeverSink aspect data |
