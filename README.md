@@ -8,6 +8,73 @@ Everything lives in `%USERPROFILE%\Documents\My Games\Path of Exile 2\`.
 
 ---
 
+## Quick install for humans
+
+Close Path of Exile 2 first. The destination folder is:
+
+```text
+%USERPROFILE%\Documents\My Games\Path of Exile 2\
+```
+
+Choose one option:
+
+### Option A: GitHub (requires Git)
+
+Open PowerShell and run:
+
+```powershell
+$repo = "$env:TEMP\poe2-financialadvisor-filter"
+$game = "$env:USERPROFILE\Documents\My Games\Path of Exile 2"
+git clone https://github.com/DiegoJohnsonL/poe2-financialadvisor-filter.git $repo
+Copy-Item "$repo\FinancialAdvisor Filter.filter" $game -Force
+Copy-Item -Path @(
+  "$repo\hibdivine.mp3"
+  "$repo\HibOmenLight.mp3"
+  "$repo\Echoes.mp3"
+  "$repo\OrbOfAnnulment.ogg"
+) -Destination $game -Force
+```
+
+### Option B: Download manually
+
+1. Open the [GitHub repository](https://github.com/DiegoJohnsonL/poe2-financialadvisor-filter).
+2. Select **Code → Download ZIP**, then extract it.
+3. Copy `FinancialAdvisor Filter.filter`, `hibdivine.mp3`, `HibOmenLight.mp3`, `Echoes.mp3`, and
+   `OrbOfAnnulment.ogg` into the destination folder above.
+
+Then:
+
+1. Start the game and select **FinancialAdvisor Filter** under **Options → Game → Loot Filter**.
+2. To apply the filter inside Ritual rewards, close the game, open
+   `poe2_production_Config.ini` in the same folder, and change
+   `apply_item_filter_to_ritual=false` to `apply_item_filter_to_ritual=true`. Save the file,
+   then start the game again.
+3. If the filter does not appear immediately, reselect it or restart the game.
+
+## For AI agents and contributors
+
+1. Read `AGENTS.md` and this README before editing.
+2. Never hand-edit `FinancialAdvisor Filter.filter`; it is generated output. Put personal rules
+   in `_filter-build-script.awk`.
+3. Remember that the first matching rule wins. Put an override above the stock rule it must beat;
+   currency overrides that must survive economy re-tiering belong above `$tier->s`.
+4. Dry-run and validate the build:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File "_filter-economy-update.ps1" -DryRun
+   ```
+
+5. If the dry-run reports `structure : OK`, install the build:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File "_filter-economy-update.ps1"
+   ```
+
+6. Verify the generated rule and its position, then tell the user to reload or reselect the filter
+   in-game. Keep generated output, cache files, and user-owned unrelated changes intact.
+
+---
+
 ## Enable the filter in game
 
 1. Make sure `FinancialAdvisor Filter.filter` is in the folder above.
@@ -56,9 +123,10 @@ and the walkthrough video [Hidden POE2 Setting: Filters in Rituals](https://www.
 
 ---
 
-## Custom drop sounds
+## Custom drop sounds (included)
 
-Four rules use custom audio. These files must sit **beside** the `.filter`:
+The GitHub and ZIP downloads include all four custom sound files. Keep them **beside** the
+`.filter` file:
 
 | File | Plays for |
 |---|---|
@@ -67,8 +135,8 @@ Four rules use custom audio. These files must sit **beside** the `.filter`:
 | `Echoes.mp3` | Omen of Abyssal Echoes |
 | `OrbOfAnnulment.ogg` | Orb of Annulment voice; the rule continues into the stock Divine ding |
 
-They are wired with `CustomAlertSoundOptional`, not `CustomAlertSound` — if a file goes
-missing the rule falls back to the default sound instead of breaking the whole filter load.
+They are wired with `CustomAlertSoundOptional` as a safety fallback, but the intended installation
+includes all four files.
 The annulment rule also uses `Continue`, so the parent currency rule's built-in Divine sound
 plays after the voice recording. The other three assets already contain their full custom audio.
 
