@@ -17,9 +17,11 @@ internal sealed class InstallResult
 
 internal static class InstallerCore
 {
-    private const string FilterResource = "FinancialAdvisorFilter";
-    private const string UpdaterResource = "FinancialAdvisorFilterUpdater";
-    private const string UpdateTaskName = "FinancialAdvisor Filter Update";
+    private const string FilterResource = "DivineHuntersFilter";
+    private const string UpdaterResource = "DivineHuntersUpdater";
+    private const string UpdateTaskName = "Divine Hunters Filter Update";
+    private const string LegacyFilterFileName = "FinancialAdvisor Filter.filter";
+    private const int MaxFilterBackups = 1;
 
     private static readonly string[] AudioResources =
     {
@@ -40,12 +42,23 @@ internal static class InstallerCore
 
         Directory.CreateDirectory(targetFolder);
 
-        string filterPath = Path.Combine(targetFolder, "FinancialAdvisor Filter.filter");
+        string filterPath = Path.Combine(targetFolder, "Divine Hunters.filter");
+        string legacyFilterPath = Path.Combine(targetFolder, LegacyFilterFileName);
         string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
         if (File.Exists(filterPath))
-            File.Copy(filterPath, filterPath + ".before-financialadvisor-" + stamp + ".bak", true);
+        {
+            File.Copy(filterPath, filterPath + ".before-divinehunters-" + stamp + ".bak", true);
+            PruneFilterBackups(targetFolder, filterPath);
+        }
+        else if (File.Exists(legacyFilterPath))
+        {
+            File.Copy(legacyFilterPath, filterPath + ".before-divinehunters-" + stamp + ".bak", true);
+            PruneFilterBackups(targetFolder, filterPath);
+        }
 
         CopyResource(FilterResource, filterPath);
+        if (File.Exists(legacyFilterPath))
+            File.Delete(legacyFilterPath);
         foreach (string audioResource in AudioResources)
             CopyResource(audioResource, Path.Combine(targetFolder, audioResource));
 
@@ -54,7 +67,7 @@ internal static class InstallerCore
             : "Ritual filtering was left unchanged.";
 
         if (recordVersion)
-            WriteInstalledVersion(targetFolder);
+            WriteInstalledVersion();
 
         return new InstallResult
         {
@@ -65,7 +78,7 @@ internal static class InstallerCore
 
     public static string ConfigureAutoUpdate(string targetFolder, bool enabled)
     {
-        if (string.Equals(Environment.GetEnvironmentVariable("FINANCIALADVISOR_SKIP_AUTOUPDATE"), "1", StringComparison.Ordinal))
+        if (string.Equals(Environment.GetEnvironmentVariable("DIVINEHUNTERS_SKIP_AUTOUPDATE"), "1", StringComparison.Ordinal))
             return "Automatic updates were skipped for this test run.";
 
         if (!enabled)
@@ -75,7 +88,7 @@ internal static class InstallerCore
         }
 
         string updaterFolder = GetUpdaterFolder();
-        string updaterPath = Path.Combine(updaterFolder, "FinancialAdvisorFilterUpdater.exe");
+        string updaterPath = Path.Combine(updaterFolder, "DivineHuntersUpdater.exe");
         Directory.CreateDirectory(updaterFolder);
         CopyResource(UpdaterResource, updaterPath);
 
@@ -91,74 +104,56 @@ internal static class InstallerCore
         return "Automatic updates are enabled; the updater checks GitHub daily.";
     }
 
-    public static bool TryUpdateOnStartup()
-    {
-        string targetFolder = ReadKnownInstallFolder();
-        if (string.IsNullOrWhiteSpace(targetFolder)
-            || !Directory.Exists(targetFolder)
-            || !File.Exists(Path.Combine(targetFolder, "FinancialAdvisor Filter.filter")))
-            return false;
-
-        string updaterFolder = GetUpdaterFolder();
-        string updaterPath = Path.Combine(updaterFolder, "FinancialAdvisorFilterUpdater-startup.exe");
-        try
-        {
-            Directory.CreateDirectory(updaterFolder);
-            CopyResource(UpdaterResource, updaterPath);
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = updaterPath,
-                Arguments = "--startup --target " + QuoteCommandArgument(targetFolder),
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WorkingDirectory = updaterFolder
-            };
-            using (Process process = Process.Start(startInfo))
-            {
-                process.WaitForExit();
-                return process.ExitCode == 10;
-            }
-        }
-        catch
-        {
-            // An unavailable network or helper should never prevent the installer UI opening.
-            return false;
-        }
-    }
-
     private static string GetUpdaterFolder()
     {
-        string overrideFolder = Environment.GetEnvironmentVariable("FINANCIALADVISOR_UPDATER_STATE");
+        string overrideFolder = Environment.GetEnvironmentVariable("DIVINEHUNTERS_UPDATER_STATE");
         if (!string.IsNullOrWhiteSpace(overrideFolder))
             return overrideFolder;
 
         return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "FinancialAdvisorFilter");
+            "DivineHuntersFilter");
     }
 
-    private static void WriteInstalledVersion(string targetFolder)
+    private static void WriteInstalledVersion()
     {
         string updaterFolder = GetUpdaterFolder();
         Directory.CreateDirectory(updaterFolder);
         File.WriteAllText(Path.Combine(updaterFolder, "installed-version.txt"), BuildInfo.Version, Encoding.UTF8);
-        File.WriteAllText(Path.Combine(updaterFolder, "target-path.txt"), targetFolder, Encoding.UTF8);
     }
 
-    private static string ReadKnownInstallFolder()
+    private static void PruneFilterBackups(string targetFolder, string filterPath)
     {
-        string targetPath = Path.Combine(GetUpdaterFolder(), "target-path.txt");
+        string pattern = Path.GetFileName(filterPath) + ".before-divinehunters-*.bak";
+        FileInfo[] backups;
         try
         {
-            if (File.Exists(targetPath))
-                return File.ReadAllText(targetPath, Encoding.UTF8).Trim();
+            backups = new DirectoryInfo(targetFolder).GetFiles(pattern);
         }
         catch
         {
-            // Fall back to the standard location below.
+            return;
         }
 
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games\\Path of Exile 2");
+        Array.Sort(backups, delegate(FileInfo left, FileInfo right)
+        {
+            int compare = right.LastWriteTimeUtc.CompareTo(left.LastWriteTimeUtc);
+            if (compare != 0)
+                return compare;
+            return StringComparer.OrdinalIgnoreCase.Compare(right.Name, left.Name);
+        });
+
+        for (int index = MaxFilterBackups; index < backups.Length; index++)
+        {
+            try
+            {
+                backups[index].Delete();
+            }
+            catch
+            {
+                // A locked or inaccessible old backup should not block installation.
+            }
+        }
     }
 
     private static void DeleteScheduledTask()
@@ -238,7 +233,7 @@ internal static class InstallerCore
         if (updated == text)
             return "Ritual filtering was already enabled.";
 
-        string backupPath = configPath + ".before-financialadvisor.bak";
+        string backupPath = configPath + ".before-divinehunters.bak";
         File.Copy(configPath, backupPath, true);
         File.WriteAllText(configPath, updated, new UTF8Encoding(true));
         return "Ritual filtering was enabled. A backup of the config was saved beside it.";
@@ -350,7 +345,7 @@ internal sealed class InstallerForm : Form
 
     public InstallerForm()
     {
-        Text = "FinancialAdvisor Filter Setup";
+        Text = "Divine Hunters Filter Setup";
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
@@ -363,7 +358,7 @@ internal sealed class InstallerForm : Form
         SetBounds(header, 0, 0, 720, 76);
         header.Paint += Header_Paint;
         Controls.Add(header);
-        Label title = MakeLabel("FinancialAdvisor Filter", 72, 10, 600, 30, 18, true);
+        Label title = MakeLabel("Divine Hunters Filter", 72, 10, 600, 30, 18, true);
         title.ForeColor = PoETheme.GoldBright;
         header.Controls.Add(title);
         Label subtitle = MakeLabel("PATH OF EXILE 2  //  FILTER INSTALLATION", 74, 43, 500, 18, 9, false);
@@ -382,7 +377,7 @@ internal sealed class InstallerForm : Form
         Panel welcome = NewPage();
         welcome.Controls.Add(MakeLabel("WELCOME, EXILE", 26, 16, 630, 32, 18, true));
         welcome.Controls.Add(MakeLabel(
-            "This wizard installs the FinancialAdvisor loot filter and five custom drop sounds into your Path of Exile 2 folder.\r\n\r\nIt can also enable the filter inside Ritual rewards. Close the game before continuing.",
+            "This wizard installs the Divine Hunters loot filter and five custom drop sounds into your Path of Exile 2 folder.\r\n\r\nIt can also enable the filter inside Ritual rewards. Close the game before continuing.",
             28, 62, 630, 90, 12, false));
         welcome.Controls.Add(MakeInsetLabel("Filter + 5 custom sounds + optional Ritual setting", 28, 168, 630, 34));
         autoUpdateCheck = new CheckBox
@@ -551,7 +546,7 @@ internal sealed class InstallerForm : Form
                 : autoUpdateCheck.Checked ? "Daily check" : "Disabled";
             summaryLabel.Text =
                 action + " to:\r\n" + folderBox.Text.Trim() +
-                "\r\n\r\nFilter: FinancialAdvisor Filter.filter\r\nCustom sounds: 5 included\r\nRitual filtering: " + ritual +
+                "\r\n\r\nFilter: Divine Hunters.filter\r\nCustom sounds: 5 included\r\nRitual filtering: " + ritual +
                 "\r\nAutomatic updates: " + updates;
         }
     }
@@ -560,7 +555,8 @@ internal sealed class InstallerForm : Form
     {
         string path = folderBox.Text.Trim();
         return !string.IsNullOrWhiteSpace(path)
-            && File.Exists(Path.Combine(path, "FinancialAdvisor Filter.filter"));
+            && (File.Exists(Path.Combine(path, "Divine Hunters.filter"))
+                || File.Exists(Path.Combine(path, "FinancialAdvisor Filter.filter")));
     }
 
     private static void Header_Paint(object sender, PaintEventArgs e)
@@ -657,7 +653,7 @@ internal sealed class InstallerForm : Form
             Cursor = Cursors.Default;
             MessageBox.Show(this,
                 "Installation complete.\r\n\r\n" + result.Target + "\r\n\r\n" + result.RitualMessage + "\r\n\r\n" + updateMessage + "\r\n\r\nReselect the filter in-game if Path of Exile 2 is already open.",
-                "FinancialAdvisor Filter Setup", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                "Divine Hunters Filter Setup", MessageBoxButtons.OK, MessageBoxIcon.Information);
             Close();
         }
         catch (Exception ex)
@@ -702,8 +698,6 @@ internal static class Program
 
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        if (InstallerCore.TryUpdateOnStartup())
-            return 0;
         Application.Run(new InstallerForm());
         return 0;
     }

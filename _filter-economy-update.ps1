@@ -62,7 +62,7 @@ $UserAgent = 'poe2-personal-filter/1.0 (+local script; contact via github.com/Ne
 $ApiRoot   = 'https://api.poe2scout.com'
 $AspectUrl = 'https://raw.githubusercontent.com/NeverSinkDev/Filter-ItemEconomyAspects/master/p2/uniques.generic.txt'
 
-if ($Output -eq '')     { $Output     = Join-Path $Root 'FinancialAdvisor Filter.filter' }
+if ($Output -eq '')     { $Output     = Join-Path $Root 'Divine Hunters.filter' }
 if (-not (Test-Path $CacheDir)) { New-Item -ItemType Directory -Path $CacheDir | Out-Null }
 
 $script:Lines = @()

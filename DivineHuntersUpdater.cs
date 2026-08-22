@@ -6,44 +6,31 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Script.Serialization;
-using System.Windows.Forms;
 
-internal static class FinancialAdvisorFilterUpdaterProgram
+internal static class DivineHuntersUpdaterProgram
 {
-    private const string LatestReleaseApi = "https://api.github.com/repos/DiegoJohnsonL/poe2-financialadvisor-filter/releases/latest";
-    private const string InstallerAssetName = "FinancialAdvisorFilterSetup.exe";
-    private const int UpdateAppliedExitCode = 10;
+    private const string LatestReleaseApi = "https://api.github.com/repos/DiegoJohnsonL/divine-hunters-filter/releases/latest";
+    private const string InstallerAssetName = "DivineHuntersSetup.exe";
 
     public static int Main(string[] args)
     {
-        bool interactive = args.Length == 3
-            && string.Equals(args[0], "--startup", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(args[1], "--target", StringComparison.OrdinalIgnoreCase);
-        bool scheduled = args.Length == 2
-            && string.Equals(args[0], "--target", StringComparison.OrdinalIgnoreCase);
-        if (!interactive && !scheduled)
+        if (args.Length != 2 || !string.Equals(args[0], "--target", StringComparison.OrdinalIgnoreCase))
             return 2;
 
         string targetFolder;
         try
         {
-            targetFolder = Path.GetFullPath(interactive ? args[2] : args[1]);
+            targetFolder = Path.GetFullPath(args[1]);
         }
         catch
         {
             return 2;
         }
 
-        if (interactive)
-        {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-        }
-
-        return RunUpdate(targetFolder, interactive);
+        return RunUpdate(targetFolder);
     }
 
-    private static int RunUpdate(string targetFolder, bool interactive)
+    private static int RunUpdate(string targetFolder)
     {
         try
         {
@@ -69,26 +56,7 @@ internal static class FinancialAdvisorFilterUpdaterProgram
                 if (IsPathOfExileRunning())
                 {
                     Log("Path of Exile 2 is running; update postponed.");
-                    if (interactive)
-                    {
-                        MessageBox.Show(
-                            "A newer filter release is available, but Path of Exile 2 is running. Close the game and run the installer again to update.",
-                            "Update postponed",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                    }
                     return 0;
-                }
-
-                if (interactive)
-                {
-                    DialogResult choice = MessageBox.Show(
-                        "FinancialAdvisor Filter " + tag + " is available. Download and install it now?",
-                        "Update available",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-                    if (choice != DialogResult.Yes)
-                        return 0;
                 }
 
                 Dictionary<string, object> asset = FindInstallerAsset(release);
@@ -97,7 +65,7 @@ internal static class FinancialAdvisorFilterUpdaterProgram
                 if (string.IsNullOrWhiteSpace(downloadUrl))
                     throw new InvalidOperationException("The latest release has no installer download URL.");
 
-                string downloadPath = Path.Combine(Path.GetTempPath(), "FinancialAdvisorFilterSetup-" + Guid.NewGuid().ToString("N") + ".exe");
+                string downloadPath = Path.Combine(Path.GetTempPath(), "DivineHuntersSetup-" + Guid.NewGuid().ToString("N") + ".exe");
                 try
                 {
                     Download(downloadUrl, downloadPath);
@@ -108,15 +76,6 @@ internal static class FinancialAdvisorFilterUpdaterProgram
 
                     File.WriteAllText(VersionPath, latestVersion.ToString(3), Encoding.UTF8);
                     Log("Updated to " + tag + ".");
-                    if (interactive)
-                    {
-                        MessageBox.Show(
-                            "The filter was updated to " + tag + ".",
-                            "Update complete",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                        return UpdateAppliedExitCode;
-                    }
                 }
                 finally
                 {
@@ -136,13 +95,13 @@ internal static class FinancialAdvisorFilterUpdaterProgram
     {
         get
         {
-            string overrideFolder = Environment.GetEnvironmentVariable("FINANCIALADVISOR_UPDATER_STATE");
+                string overrideFolder = Environment.GetEnvironmentVariable("DIVINEHUNTERS_UPDATER_STATE");
             if (!string.IsNullOrWhiteSpace(overrideFolder))
                 return overrideFolder;
 
             return Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "FinancialAdvisorFilter");
+                "DivineHuntersFilter");
         }
     }
 
@@ -190,14 +149,14 @@ internal static class FinancialAdvisorFilterUpdaterProgram
 
     private static Dictionary<string, object> GetLatestRelease()
     {
-        string apiUrl = Environment.GetEnvironmentVariable("FINANCIALADVISOR_UPDATE_API");
+        string apiUrl = Environment.GetEnvironmentVariable("DIVINEHUNTERS_UPDATE_API");
         if (string.IsNullOrWhiteSpace(apiUrl))
             apiUrl = LatestReleaseApi;
 
         using (WebClient client = new WebClient())
         {
             client.Headers[HttpRequestHeader.Accept] = "application/vnd.github+json";
-            client.Headers[HttpRequestHeader.UserAgent] = "FinancialAdvisorFilterUpdater/" + BuildInfo.Version;
+            client.Headers[HttpRequestHeader.UserAgent] = "DivineHuntersUpdater/" + BuildInfo.Version;
             client.Headers["X-GitHub-Api-Version"] = "2022-11-28";
             string json = client.DownloadString(apiUrl);
             JavaScriptSerializer serializer = new JavaScriptSerializer();
@@ -248,7 +207,7 @@ internal static class FinancialAdvisorFilterUpdaterProgram
     {
         using (WebClient client = new WebClient())
         {
-            client.Headers[HttpRequestHeader.UserAgent] = "FinancialAdvisorFilterUpdater/" + BuildInfo.Version;
+            client.Headers[HttpRequestHeader.UserAgent] = "DivineHuntersUpdater/" + BuildInfo.Version;
             client.DownloadFile(url, destination);
         }
     }

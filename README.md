@@ -1,4 +1,4 @@
-# FinancialAdvisor Filter — PoE2 Loot Filter
+# Divine Hunters Filter — PoE2 Loot Filter
 
 A customised build of **NeverSink's 6-UBER-PLUS-STRICT** filter for Path of Exile 2, with
 personal edits layered on top and a nightly rebuild that re-tiers uniques against live
@@ -20,31 +20,28 @@ Choose one option:
 
 ### Recommended: one-file installer
 
-1. Download `FinancialAdvisorFilterSetup.exe` from the repository (or download the ZIP and extract it).
-2. Double-click `FinancialAdvisorFilterSetup.exe`.
+1. Download `DivineHuntersSetup.exe` from the repository (or download the ZIP and extract it).
+2. Double-click `DivineHuntersSetup.exe`.
 3. Click **Next**, choose your PoE2 folder, leave Ritual filtering checked if wanted, and click
    **Install**.
 
 The EXE already contains the filter and all five custom sounds. No Git, PowerShell, or command
-prompt is required. `Install-FinancialAdvisorFilter.cmd` remains available as a script fallback.
+prompt is required. `Install-DivineHuntersFilter.cmd` remains available as a script fallback.
 
 ## Automatic updates
 
 The one-file installer can optionally register a per-user Windows task named
-`FinancialAdvisor Filter Update`. Once enabled, it checks the latest GitHub Release once per day,
-downloads a newer `FinancialAdvisorFilterSetup.exe` when available, verifies GitHub's SHA-256 asset
+`Divine Hunters Filter Update`. Once enabled, it checks the latest GitHub Release once per day,
+downloads a newer `DivineHuntersSetup.exe` when available, verifies GitHub's SHA-256 asset
 digest, and applies the filter and sounds silently. It skips the check while Path of Exile 2 is
 running and preserves the Ritual setting.
 
-The helper and its log live under `%LOCALAPPDATA%\FinancialAdvisorFilter`, not in the game folder.
+The helper and its log live under `%LOCALAPPDATA%\DivineHuntersFilter`, not in the game folder.
 The updater never runs `git pull` and never changes the game's Ritual setting during an update.
-After v1.2.0, launching the same installer again on an existing installation also checks for a
-newer release and offers to update immediately. Older v1.0.0/v1.1.0 installers must be replaced
-manually once before they have this startup check.
 To disable it later, rerun the installer with the checkbox cleared or run:
 
 ```powershell
-schtasks /Delete /TN "FinancialAdvisor Filter Update" /F
+schtasks /Delete /TN "Divine Hunters Filter Update" /F
 ```
 
 ### Option A: GitHub (requires Git)
@@ -52,10 +49,10 @@ schtasks /Delete /TN "FinancialAdvisor Filter Update" /F
 Open PowerShell and run:
 
 ```powershell
-$repo = "$env:TEMP\poe2-financialadvisor-filter"
+$repo = "$env:TEMP\divine-hunters-filter"
 $game = "$env:USERPROFILE\Documents\My Games\Path of Exile 2"
-git clone https://github.com/DiegoJohnsonL/poe2-financialadvisor-filter.git $repo
-Copy-Item "$repo\FinancialAdvisor Filter.filter" $game -Force
+git clone https://github.com/DiegoJohnsonL/divine-hunters-filter.git $repo
+Copy-Item "$repo\Divine Hunters.filter" $game -Force
 Copy-Item -Path @(
   "$repo\hibdivine.mp3"
   "$repo\HibOmenLight.mp3"
@@ -67,14 +64,14 @@ Copy-Item -Path @(
 
 ### Option B: Download manually
 
-1. Open the [GitHub repository](https://github.com/DiegoJohnsonL/poe2-financialadvisor-filter).
+1. Open the [GitHub repository](https://github.com/DiegoJohnsonL/divine-hunters-filter).
 2. Select **Code → Download ZIP**, then extract it.
-3. Copy `FinancialAdvisor Filter.filter`, `hibdivine.mp3`, `HibOmenLight.mp3`, `Echoes.mp3`,
+3. Copy `Divine Hunters.filter`, `hibdivine.mp3`, `HibOmenLight.mp3`, `Echoes.mp3`,
    `OmenOfTheLiege.mp3`, and `OrbOfAnnulment.mp3` into the destination folder above.
 
 Then:
 
-1. Start the game and select **FinancialAdvisor Filter** under **Options → Game → Loot Filter**.
+1. Start the game and select **Divine Hunters** under **Options → Game → Loot Filter**.
 2. To apply the filter inside Ritual rewards, close the game, open
    `poe2_production_Config.ini` in the same folder, and change
    `apply_item_filter_to_ritual=false` to `apply_item_filter_to_ritual=true`. Save the file,
@@ -84,14 +81,14 @@ Then:
 ## For AI agents and contributors
 
 1. Read `AGENTS.md` and this README before editing.
-2. Never hand-edit `FinancialAdvisor Filter.filter`; it is generated output. Put personal rules
+2. Never hand-edit `Divine Hunters.filter`; it is generated output. Put personal rules
    in `_filter-build-script.awk`.
 3. Remember that the first matching rule wins. Put an override above the stock rule it must beat;
    currency overrides that must survive economy re-tiering belong above `$tier->s`.
-4. The public installer is `FinancialAdvisorFilterSetup.exe`, built from
-   `FinancialAdvisorFilterSetup.cs`. Rebuild it with `Build-FinancialAdvisorSetup.ps1` whenever
+4. The public installer is `DivineHuntersSetup.exe`, built from
+   `DivineHuntersSetup.cs`. Rebuild it with `Build-DivineHuntersSetup.ps1` whenever
    the filter, included sounds, or installer/updater code changes. Bump the version in
-   `FinancialAdvisorFilterVersion.cs` before publishing a new release.
+   `DivineHuntersVersion.cs` before publishing a new release.
 5. Dry-run and validate the filter build:
 
    ```powershell
@@ -111,8 +108,8 @@ Then:
 
 ## Enable the filter in game
 
-1. Make sure `FinancialAdvisor Filter.filter` is in the folder above.
-2. In game: **Escape → Options → Game → Loot Filter**, pick `FinancialAdvisor Filter`.
+1. Make sure `Divine Hunters.filter` is in the folder above.
+2. In game: **Escape → Options → Game → Loot Filter**, pick `Divine Hunters`.
    (Some builds list it under **Options → UI**, near the bottom.)
 3. The game does **not** hot-reload. After every rebuild, reselect the filter — or restart.
 
@@ -180,7 +177,7 @@ See [`OrbOfAnnulment-audio-process.md`](OrbOfAnnulment-audio-process.md) for the
 
 ## How the filter is built
 
-> **Do not edit `FinancialAdvisor Filter.filter` by hand.** It is generated output. The next
+> **Do not edit `Divine Hunters.filter` by hand.** It is generated output. The next
 > rebuild overwrites it and your change vanishes.
 
 ```
@@ -196,7 +193,7 @@ See [`OrbOfAnnulment-audio-process.md`](OrbOfAnnulment-audio-process.md) for the
   _filter-economy-update.ps1      ← splices the [ECONOMY] unique-promotion block, sanity checks
           │
           ▼
-  FinancialAdvisor Filter.filter  ← installed (previous kept as .bak)
+  Divine Hunters.filter  ← installed (previous kept as .bak)
 ```
 
 **Why the cached online copy and not the GitHub release:** GitHub tags rarely — `0.10.3` shipped
@@ -310,17 +307,18 @@ reproduced in the filter's own header. Summary:
 
 | File | Role |
 |---|---|
-| `FinancialAdvisor Filter.filter` | **Generated.** The installed filter. Do not hand-edit. |
-| `FinancialAdvisor Filter.filter.bak` | Previous build, kept automatically on install |
+| `Divine Hunters.filter` | **Generated.** The installed filter. Do not hand-edit. |
+| `Divine Hunters.filter.bak` | Previous build, kept automatically on install |
+| `Divine Hunters.filter.before-divinehunters-*.bak` | Installer restore point; only the newest is retained |
 | `_filter-build-script.awk` | **Source of truth** for personal customisations |
 | `_filter-economy-update.ps1` | Build + economy pipeline |
-| `FinancialAdvisorFilterSetup.exe` | One-file Windows installer; contains the filter and custom sounds |
-| `FinancialAdvisorFilterSetup.cs` | Source for the Windows installer |
-| `FinancialAdvisorFilterUpdater.cs` | Silent GitHub Release updater used by the daily task |
-| `FinancialAdvisorFilterVersion.cs` | Release version embedded in the installer and updater |
-| `Build-FinancialAdvisorSetup.ps1` | Rebuilds the one-file installer EXE |
+| `DivineHuntersSetup.exe` | One-file Windows installer; contains the filter and custom sounds |
+| `DivineHuntersSetup.cs` | Source for the Windows installer |
+| `DivineHuntersUpdater.cs` | Silent GitHub Release updater used by the daily task |
+| `DivineHuntersVersion.cs` | Release version embedded in the installer and updater |
+| `Build-DivineHuntersSetup.ps1` | Rebuilds the one-file installer EXE |
 | `OrbOfAnnulment-audio-process.md` | Repeatable FFmpeg recipe for voice + ding alerts |
-| `Install-FinancialAdvisorFilter.cmd` | Script-based installer fallback |
+| `Install-DivineHuntersFilter.cmd` | Script-based installer fallback |
 | `_filter-economy-update.log` | Run history |
 | `_filter-cache\staged.filter` | Intermediate build output |
 | `_filter-cache\uniques.aspects.json` | Cached NeverSink aspect data |

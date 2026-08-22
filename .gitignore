@@ -14,7 +14,7 @@
 !AGENTS.md
 
 # The filter itself (generated, but committed so the repo is usable as-is)
-!FinancialAdvisor Filter.filter
+!Divine Hunters.filter
 
 # Build pipeline - the actual source of truth
 !_filter-build-script.awk
@@ -28,13 +28,13 @@
 !OrbOfAnnulment.ogg
 !OrbOfAnnulment.mp3
 !OrbOfAnnulment-audio-process.md
-!Install-FinancialAdvisorFilter.ps1
-!Install-FinancialAdvisorFilter.cmd
-!FinancialAdvisorFilterSetup.cs
-!FinancialAdvisorFilterSetup.exe
-!FinancialAdvisorFilterUpdater.cs
-!FinancialAdvisorFilterVersion.cs
-!Build-FinancialAdvisorSetup.ps1
+!Install-DivineHuntersFilter.ps1
+!Install-DivineHuntersFilter.cmd
+!DivineHuntersSetup.cs
+!DivineHuntersSetup.exe
+!DivineHuntersUpdater.cs
+!DivineHuntersVersion.cs
+!Build-DivineHuntersSetup.ps1
 
 # Explicitly excluded even though they sit beside the tracked files:
 #   *.bak, *.bak-*            previous builds

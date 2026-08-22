@@ -20,7 +20,8 @@ $themeText = [System.Drawing.Color]::FromArgb(246, 237, 219)
 $themeMuted = [System.Drawing.Color]::FromArgb(200, 188, 168)
 
 $sourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$filterFile = 'FinancialAdvisor Filter.filter'
+$filterFile = 'Divine Hunters.filter'
+$legacyFilterFile = 'FinancialAdvisor Filter.filter'
 $audioFiles = @(
     'hibdivine.mp3'
     'HibOmenLight.mp3'
@@ -28,13 +29,14 @@ $audioFiles = @(
     'OmenOfTheLiege.mp3'
     'OrbOfAnnulment.mp3'
 )
+$maxFilterBackups = 1
 $requiredFiles = @($filterFile) + $audioFiles
 $missingFiles = @($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $sourceRoot $_)) })
 
 if ($missingFiles.Count -gt 0) {
     [System.Windows.Forms.MessageBox]::Show(
         "This installer is missing:`r`n`r`n$($missingFiles -join "`r`n")`r`n`r`nDownload the complete repository ZIP and run the installer from the extracted folder.",
-        'FinancialAdvisor Filter Setup',
+        'Divine Hunters Filter Setup',
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Error
     ) | Out-Null
@@ -140,7 +142,7 @@ function Enable-RitualFilter {
         return 'Ritual filtering was already enabled.'
     }
 
-    $backupPath = "$ConfigPath.before-financialadvisor.bak"
+    $backupPath = "$ConfigPath.before-divinehunters.bak"
     Copy-Item -LiteralPath $ConfigPath -Destination $backupPath -Force
     [System.IO.File]::WriteAllText($ConfigPath, $updated, $loaded.Encoding)
     return 'Ritual filtering was enabled. A backup of the config was saved beside it.'
@@ -163,11 +165,19 @@ function Install-FilterFiles {
 
     $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
     $targetFilter = Join-Path $TargetFolder $filterFile
+    $legacyFilter = Join-Path $TargetFolder $legacyFilterFile
     if (Test-Path -LiteralPath $targetFilter) {
-        Copy-Item -LiteralPath $targetFilter -Destination "$targetFilter.before-financialadvisor-$stamp.bak" -Force
+        Copy-Item -LiteralPath $targetFilter -Destination "$targetFilter.before-divinehunters-$stamp.bak" -Force
+        Prune-FilterBackups $TargetFolder
+    } elseif (Test-Path -LiteralPath $legacyFilter) {
+        Copy-Item -LiteralPath $legacyFilter -Destination "$targetFilter.before-divinehunters-$stamp.bak" -Force
+        Prune-FilterBackups $TargetFolder
     }
 
     Copy-Item -LiteralPath (Join-Path $sourceRoot $filterFile) -Destination $TargetFolder -Force
+    if (Test-Path -LiteralPath $legacyFilter) {
+        Remove-Item -LiteralPath $legacyFilter -Force
+    }
     foreach ($audioFile in $audioFiles) {
         Copy-Item -LiteralPath (Join-Path $sourceRoot $audioFile) -Destination $TargetFolder -Force
     }
@@ -183,10 +193,30 @@ function Install-FilterFiles {
     }
 }
 
+function Prune-FilterBackups {
+    param([string] $TargetFolder)
+
+    $pattern = "$filterFile.before-divinehunters-*.bak"
+    $backups = @(
+        Get-ChildItem -LiteralPath $TargetFolder -File -Filter $pattern |
+            Sort-Object -Property @{
+                Expression = 'LastWriteTimeUtc'
+                Descending = $true
+            }, @{
+                Expression = 'Name'
+                Descending = $true
+            }
+    )
+
+    for ($index = $maxFilterBackups; $index -lt $backups.Count; $index++) {
+        Remove-Item -LiteralPath $backups[$index].FullName -Force -ErrorAction SilentlyContinue
+    }
+}
+
 $defaultFolder = Join-Path $env:USERPROFILE 'Documents\My Games\Path of Exile 2'
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'FinancialAdvisor Filter Setup'
+$form.Text = 'Divine Hunters Filter Setup'
 $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
 $form.MaximizeBox = $false
@@ -208,7 +238,7 @@ $header.Add_Paint({
 })
 $form.Controls.Add($header)
 
-$headerTitle = New-TextLabel 'FinancialAdvisor Filter' 72 10 600 30 18
+$headerTitle = New-TextLabel 'Divine Hunters Filter' 72 10 600 30 18
 $headerTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawing.FontStyle]::Bold)
 $headerTitle.ForeColor = $themeGoldBright
 $header.Controls.Add($headerTitle)
@@ -235,7 +265,7 @@ $welcomeTitle = New-TextLabel 'WELCOME, EXILE' 26 16 630 32 18
 $welcomeTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawing.FontStyle]::Bold)
 $welcomeTitle.ForeColor = $themeGoldBright
 $welcomePage.Controls.Add($welcomeTitle)
-$welcomePage.Controls.Add((New-TextLabel "This wizard copies the FinancialAdvisor loot filter and five custom drop sounds into your Path of Exile 2 folder.`r`n`r`nIt can also enable the filter inside Ritual rewards. Close the game before continuing." 28 62 630 90 12))
+$welcomePage.Controls.Add((New-TextLabel "This wizard copies the Divine Hunters loot filter and five custom drop sounds into your Path of Exile 2 folder.`r`n`r`nIt can also enable the filter inside Ritual rewards. Close the game before continuing." 28 62 630 90 12))
 $welcomePage.Controls.Add((New-TextLabel "Filter + 5 custom sounds + optional Ritual setting" 28 168 630 34 10))
 $welcomePage.Controls[2].BackColor = $themeInset
 $welcomePage.Controls[2].ForeColor = $themeMuted
@@ -347,12 +377,13 @@ function Show-Page {
     if ($state.Page -eq ($pages.Count - 1)) {
         $action = if ($updateMode) { 'Update' } else { 'Install' }
         $ritual = if ($updateMode) { 'Preserve current setting' } elseif ($ritualCheck.Checked) { 'Enable' } else { 'Leave unchanged' }
-        $summaryLabel.Text = "$action to:`r`n$($folderText.Text.Trim())`r`n`r`nFilter: FinancialAdvisor Filter.filter`r`nCustom sounds: 5 included`r`nRitual filtering: $ritual"
+        $summaryLabel.Text = "$action to:`r`n$($folderText.Text.Trim())`r`n`r`nFilter: Divine Hunters.filter`r`nCustom sounds: 5 included`r`nRitual filtering: $ritual"
     }
 }
 
 function Test-UpdateMode {
-    return Test-Path -LiteralPath (Join-Path $folderText.Text.Trim() $filterFile)
+    return ((Test-Path -LiteralPath (Join-Path $folderText.Text.Trim() $filterFile)) -or
+        (Test-Path -LiteralPath (Join-Path $folderText.Text.Trim() $legacyFilterFile)))
 }
 
 function Confirm-TargetFolder {
@@ -396,7 +427,7 @@ $nextButton.Add_Click({
         $ritualSetting = if ($updateMode) { $false } else { $ritualCheck.Checked }
         $result = Install-FilterFiles $folderText.Text.Trim() $ritualSetting
         $form.Cursor = [System.Windows.Forms.Cursors]::Default
-        [System.Windows.Forms.MessageBox]::Show("Installation complete.`r`n`r`n$($result.Target)`r`n`r`n$($result.Ritual)`r`n`r`nReselect the filter in-game if Path of Exile 2 is already open.", 'FinancialAdvisor Filter Setup', 'OK', 'Information') | Out-Null
+        [System.Windows.Forms.MessageBox]::Show("Installation complete.`r`n`r`n$($result.Target)`r`n`r`n$($result.Ritual)`r`n`r`nReselect the filter in-game if Path of Exile 2 is already open.", 'Divine Hunters Filter Setup', 'OK', 'Information') | Out-Null
         $form.Close()
     } catch {
         $form.Cursor = [System.Windows.Forms.Cursors]::Default
