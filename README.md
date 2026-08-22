@@ -146,12 +146,13 @@ The GitHub and ZIP downloads include all four custom sound files. Keep them **be
 | `hibdivine.mp3` | Divine Orb |
 | `HibOmenLight.mp3` | Omen of Light |
 | `Echoes.mp3` | Omen of Abyssal Echoes |
-| `OrbOfAnnulment.mp3` | Orb of Annulment voice; the rule continues into the stock Divine ding |
+| `OrbOfAnnulment.mp3` | Orb of Annulment voice mixed with the stock Divine ding |
 
 They are wired with `CustomAlertSoundOptional` as a safety fallback, but the intended installation
 includes all four files.
-The annulment rule also uses `Continue`, so the parent currency rule's built-in Divine sound
-plays after the voice recording. The other three assets already contain their full custom audio.
+The annulment MP3 already contains both layers, so its rule does **not** use `Continue`; this avoids
+playing the Divine ding twice. The other three assets already contain their full custom audio.
+See [`OrbOfAnnulment-audio-process.md`](OrbOfAnnulment-audio-process.md) for the repeatable FFmpeg recipe.
 
 ---
 
@@ -294,6 +295,7 @@ reproduced in the filter's own header. Summary:
 | `FinancialAdvisorFilterSetup.exe` | One-file Windows installer; contains the filter and custom sounds |
 | `FinancialAdvisorFilterSetup.cs` | Source for the Windows installer |
 | `Build-FinancialAdvisorSetup.ps1` | Rebuilds the one-file installer EXE |
+| `OrbOfAnnulment-audio-process.md` | Repeatable FFmpeg recipe for voice + ding alerts |
 | `Install-FinancialAdvisorFilter.cmd` | Script-based installer fallback |
 | `_filter-economy-update.log` | Run history |
 | `_filter-cache\staged.filter` | Intermediate build output |
