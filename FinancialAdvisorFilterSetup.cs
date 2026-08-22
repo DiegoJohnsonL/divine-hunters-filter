@@ -54,7 +54,7 @@ internal static class InstallerCore
             : "Ritual filtering was left unchanged.";
 
         if (recordVersion)
-            WriteInstalledVersion();
+            WriteInstalledVersion(targetFolder);
 
         return new InstallResult
         {
@@ -91,6 +91,41 @@ internal static class InstallerCore
         return "Automatic updates are enabled; the updater checks GitHub daily.";
     }
 
+    public static bool TryUpdateOnStartup()
+    {
+        string targetFolder = ReadKnownInstallFolder();
+        if (string.IsNullOrWhiteSpace(targetFolder)
+            || !Directory.Exists(targetFolder)
+            || !File.Exists(Path.Combine(targetFolder, "FinancialAdvisor Filter.filter")))
+            return false;
+
+        string updaterFolder = GetUpdaterFolder();
+        string updaterPath = Path.Combine(updaterFolder, "FinancialAdvisorFilterUpdater-startup.exe");
+        try
+        {
+            Directory.CreateDirectory(updaterFolder);
+            CopyResource(UpdaterResource, updaterPath);
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = updaterPath,
+                Arguments = "--startup --target " + QuoteCommandArgument(targetFolder),
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WorkingDirectory = updaterFolder
+            };
+            using (Process process = Process.Start(startInfo))
+            {
+                process.WaitForExit();
+                return process.ExitCode == 10;
+            }
+        }
+        catch
+        {
+            // An unavailable network or helper should never prevent the installer UI opening.
+            return false;
+        }
+    }
+
     private static string GetUpdaterFolder()
     {
         string overrideFolder = Environment.GetEnvironmentVariable("FINANCIALADVISOR_UPDATER_STATE");
@@ -102,11 +137,28 @@ internal static class InstallerCore
             "FinancialAdvisorFilter");
     }
 
-    private static void WriteInstalledVersion()
+    private static void WriteInstalledVersion(string targetFolder)
     {
         string updaterFolder = GetUpdaterFolder();
         Directory.CreateDirectory(updaterFolder);
         File.WriteAllText(Path.Combine(updaterFolder, "installed-version.txt"), BuildInfo.Version, Encoding.UTF8);
+        File.WriteAllText(Path.Combine(updaterFolder, "target-path.txt"), targetFolder, Encoding.UTF8);
+    }
+
+    private static string ReadKnownInstallFolder()
+    {
+        string targetPath = Path.Combine(GetUpdaterFolder(), "target-path.txt");
+        try
+        {
+            if (File.Exists(targetPath))
+                return File.ReadAllText(targetPath, Encoding.UTF8).Trim();
+        }
+        catch
+        {
+            // Fall back to the standard location below.
+        }
+
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games\\Path of Exile 2");
     }
 
     private static void DeleteScheduledTask()
@@ -623,6 +675,8 @@ internal static class Program
 
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+        if (InstallerCore.TryUpdateOnStartup())
+            return 0;
         Application.Run(new InstallerForm());
         return 0;
     }

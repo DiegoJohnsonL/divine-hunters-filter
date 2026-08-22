@@ -6,27 +6,45 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Script.Serialization;
+using System.Windows.Forms;
 
 internal static class FinancialAdvisorFilterUpdaterProgram
 {
     private const string LatestReleaseApi = "https://api.github.com/repos/DiegoJohnsonL/poe2-financialadvisor-filter/releases/latest";
     private const string InstallerAssetName = "FinancialAdvisorFilterSetup.exe";
+    private const int UpdateAppliedExitCode = 10;
 
     public static int Main(string[] args)
     {
-        if (args.Length != 2 || !string.Equals(args[0], "--target", StringComparison.OrdinalIgnoreCase))
+        bool interactive = args.Length == 3
+            && string.Equals(args[0], "--startup", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(args[1], "--target", StringComparison.OrdinalIgnoreCase);
+        bool scheduled = args.Length == 2
+            && string.Equals(args[0], "--target", StringComparison.OrdinalIgnoreCase);
+        if (!interactive && !scheduled)
             return 2;
 
         string targetFolder;
         try
         {
-            targetFolder = Path.GetFullPath(args[1]);
+            targetFolder = Path.GetFullPath(interactive ? args[2] : args[1]);
         }
         catch
         {
             return 2;
         }
 
+        if (interactive)
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+        }
+
+        return RunUpdate(targetFolder, interactive);
+    }
+
+    private static int RunUpdate(string targetFolder, bool interactive)
+    {
         try
         {
             Directory.CreateDirectory(StateFolder);
@@ -38,12 +56,6 @@ internal static class FinancialAdvisorFilterUpdaterProgram
                     return 0;
                 }
 
-                if (IsPathOfExileRunning())
-                {
-                    Log("Path of Exile 2 is running; update postponed.");
-                    return 0;
-                }
-
                 Version installedVersion = ReadInstalledVersion();
                 Dictionary<string, object> release = GetLatestRelease();
                 string tag = ReadString(release, "tag_name");
@@ -52,6 +64,31 @@ internal static class FinancialAdvisorFilterUpdaterProgram
                 {
                     Log("No update needed. Installed " + installedVersion + ", latest " + latestVersion + ".");
                     return 0;
+                }
+
+                if (IsPathOfExileRunning())
+                {
+                    Log("Path of Exile 2 is running; update postponed.");
+                    if (interactive)
+                    {
+                        MessageBox.Show(
+                            "A newer filter release is available, but Path of Exile 2 is running. Close the game and run the installer again to update.",
+                            "Update postponed",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
+                    return 0;
+                }
+
+                if (interactive)
+                {
+                    DialogResult choice = MessageBox.Show(
+                        "FinancialAdvisor Filter " + tag + " is available. Download and install it now?",
+                        "Update available",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+                    if (choice != DialogResult.Yes)
+                        return 0;
                 }
 
                 Dictionary<string, object> asset = FindInstallerAsset(release);
@@ -71,6 +108,15 @@ internal static class FinancialAdvisorFilterUpdaterProgram
 
                     File.WriteAllText(VersionPath, latestVersion.ToString(3), Encoding.UTF8);
                     Log("Updated to " + tag + ".");
+                    if (interactive)
+                    {
+                        MessageBox.Show(
+                            "The filter was updated to " + tag + ".",
+                            "Update complete",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        return UpdateAppliedExitCode;
+                    }
                 }
                 finally
                 {

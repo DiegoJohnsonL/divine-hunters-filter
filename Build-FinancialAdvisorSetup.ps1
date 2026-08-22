@@ -33,6 +33,7 @@ $updaterArguments = @(
     '/target:winexe'
     "/out:$updaterOutput"
     '/reference:System.dll'
+    '/reference:System.Windows.Forms.dll'
     "/reference:$webExtensions"
     $versionSource
     $updaterSource

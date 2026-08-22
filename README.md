@@ -38,6 +38,9 @@ running and preserves the Ritual setting.
 
 The helper and its log live under `%LOCALAPPDATA%\FinancialAdvisorFilter`, not in the game folder.
 The updater never runs `git pull` and never changes the game's Ritual setting during an update.
+After v1.2.0, launching the same installer again on an existing installation also checks for a
+newer release and offers to update immediately. Older v1.0.0/v1.1.0 installers must be replaced
+manually once before they have this startup check.
 To disable it later, rerun the installer with the checkbox cleared or run:
 
 ```powershell
