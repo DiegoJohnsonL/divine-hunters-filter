@@ -18,6 +18,13 @@ Close Path of Exile 2 first. The destination folder is:
 
 Choose one option:
 
+### Recommended: installer wizard
+
+1. Download the repository ZIP and extract **all** files (or clone the repository).
+2. Double-click `Install-FinancialAdvisorFilter.cmd`.
+3. Click **Next**, choose your PoE2 folder, leave Ritual filtering checked if wanted, and click
+   **Install**.
+
 ### Option A: GitHub (requires Git)
 
 Open PowerShell and run:

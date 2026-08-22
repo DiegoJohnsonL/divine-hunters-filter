@@ -25,6 +25,8 @@
 !HibOmenLight.mp3
 !Echoes.mp3
 !OrbOfAnnulment.ogg
+!Install-FinancialAdvisorFilter.ps1
+!Install-FinancialAdvisorFilter.cmd
 
 # Explicitly excluded even though they sit beside the tracked files:
 #   *.bak, *.bak-*            previous builds
