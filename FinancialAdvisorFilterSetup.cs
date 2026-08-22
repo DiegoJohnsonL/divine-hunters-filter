@@ -384,7 +384,7 @@ internal sealed class InstallerForm : Form
         welcome.Controls.Add(MakeLabel(
             "This wizard installs the FinancialAdvisor loot filter and five custom drop sounds into your Path of Exile 2 folder.\r\n\r\nIt can also enable the filter inside Ritual rewards. Close the game before continuing.",
             28, 62, 630, 90, 12, false));
-        welcome.Controls.Add(MakeInsetLabel("Filter + 4 custom sounds + optional Ritual setting", 28, 168, 630, 34));
+        welcome.Controls.Add(MakeInsetLabel("Filter + 5 custom sounds + optional Ritual setting", 28, 168, 630, 34));
         autoUpdateCheck = new CheckBox
         {
             Text = "Check for filter updates daily",
@@ -522,21 +522,45 @@ internal sealed class InstallerForm : Form
 
     private void ShowPage()
     {
+        bool updateMode = IsUpdateMode();
         foreach (Panel page in pages)
             page.Visible = false;
         pages[pageIndex].Visible = true;
         backButton.Enabled = pageIndex > 0;
-        nextButton.Text = pageIndex == pages.Length - 1 ? "INSTALL" : "NEXT >";
+        nextButton.Text = pageIndex == pages.Length - 1
+            ? (updateMode ? "UPDATE" : "INSTALL")
+            : "NEXT >";
         stepLabel.Text = "STEP " + (pageIndex + 1) + " OF " + pages.Length;
+        ritualCheck.Enabled = !updateMode;
+        ritualCheck.Text = updateMode
+            ? "Ritual setting will be preserved during this update"
+            : "Enable the item filter inside Ritual rewards";
+        autoUpdateCheck.Enabled = !updateMode;
+        autoUpdateCheck.Text = updateMode
+            ? "Automatic update schedule will be left unchanged"
+            : "Check for filter updates daily";
 
         if (pageIndex == pages.Length - 1)
         {
-            string ritual = ritualCheck.Checked ? "Enable" : "Leave unchanged";
+            string action = updateMode ? "Update" : "Install";
+            string ritual = updateMode
+                ? "Preserve current setting"
+                : ritualCheck.Checked ? "Enable" : "Leave unchanged";
+            string updates = updateMode
+                ? "Leave unchanged"
+                : autoUpdateCheck.Checked ? "Daily check" : "Disabled";
             summaryLabel.Text =
-                "Install to:\r\n" + folderBox.Text.Trim() +
-                "\r\n\r\nFilter: FinancialAdvisor Filter.filter\r\nCustom sounds: 4 included\r\nRitual filtering: " + ritual +
-                "\r\nAutomatic updates: " + (autoUpdateCheck.Checked ? "Daily check" : "Disabled");
+                action + " to:\r\n" + folderBox.Text.Trim() +
+                "\r\n\r\nFilter: FinancialAdvisor Filter.filter\r\nCustom sounds: 5 included\r\nRitual filtering: " + ritual +
+                "\r\nAutomatic updates: " + updates;
         }
+    }
+
+    private bool IsUpdateMode()
+    {
+        string path = folderBox.Text.Trim();
+        return !string.IsNullOrWhiteSpace(path)
+            && File.Exists(Path.Combine(path, "FinancialAdvisor Filter.filter"));
     }
 
     private static void Header_Paint(object sender, PaintEventArgs e)
@@ -625,8 +649,11 @@ internal sealed class InstallerForm : Form
         try
         {
             Cursor = Cursors.WaitCursor;
-            InstallResult result = InstallerCore.Install(folderBox.Text.Trim(), ritualCheck.Checked);
-            string updateMessage = InstallerCore.ConfigureAutoUpdate(folderBox.Text.Trim(), autoUpdateCheck.Checked);
+            bool updateMode = IsUpdateMode();
+            InstallResult result = InstallerCore.Install(folderBox.Text.Trim(), updateMode ? false : ritualCheck.Checked);
+            string updateMessage = updateMode
+                ? "Automatic updates were left unchanged."
+                : InstallerCore.ConfigureAutoUpdate(folderBox.Text.Trim(), autoUpdateCheck.Checked);
             Cursor = Cursors.Default;
             MessageBox.Show(this,
                 "Installation complete.\r\n\r\n" + result.Target + "\r\n\r\n" + result.RitualMessage + "\r\n\r\n" + updateMessage + "\r\n\r\nReselect the filter in-game if Path of Exile 2 is already open.",

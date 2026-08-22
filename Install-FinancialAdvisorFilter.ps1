@@ -236,7 +236,7 @@ $welcomeTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawi
 $welcomeTitle.ForeColor = $themeGoldBright
 $welcomePage.Controls.Add($welcomeTitle)
 $welcomePage.Controls.Add((New-TextLabel "This wizard copies the FinancialAdvisor loot filter and five custom drop sounds into your Path of Exile 2 folder.`r`n`r`nIt can also enable the filter inside Ritual rewards. Close the game before continuing." 28 62 630 90 12))
-$welcomePage.Controls.Add((New-TextLabel "Filter + 4 custom sounds + optional Ritual setting" 28 168 630 34 10))
+$welcomePage.Controls.Add((New-TextLabel "Filter + 5 custom sounds + optional Ritual setting" 28 168 630 34 10))
 $welcomePage.Controls[2].BackColor = $themeInset
 $welcomePage.Controls[2].ForeColor = $themeMuted
 $welcomePage.Controls[2].Padding = New-Object System.Windows.Forms.Padding(8, 6, 8, 5)
@@ -336,14 +336,23 @@ $state = @{ Page = 0 }
 $pages = @($welcomePage, $folderPage, $ritualPage, $readyPage)
 
 function Show-Page {
+    $updateMode = Test-UpdateMode
     foreach ($page in $pages) { $page.Visible = $false }
     $pages[$state.Page].Visible = $true
     $backButton.Enabled = $state.Page -gt 0
-    $nextButton.Text = if ($state.Page -eq ($pages.Count - 1)) { 'INSTALL' } else { 'NEXT >' }
+    $nextButton.Text = if ($state.Page -eq ($pages.Count - 1)) { if ($updateMode) { 'UPDATE' } else { 'INSTALL' } } else { 'NEXT >' }
     $stepLabel.Text = "STEP $($state.Page + 1) OF $($pages.Count)"
+    $ritualCheck.Enabled = -not $updateMode
+    $ritualCheck.Text = if ($updateMode) { 'Ritual setting will be preserved during this update' } else { 'Enable the item filter inside Ritual rewards' }
     if ($state.Page -eq ($pages.Count - 1)) {
-        $summaryLabel.Text = "Install to:`r`n$($folderText.Text.Trim())`r`n`r`nFilter: FinancialAdvisor Filter.filter`r`nCustom sounds: 4 included`r`nRitual filtering: $($(if ($ritualCheck.Checked) { 'Enable' } else { 'Leave unchanged' }))"
+        $action = if ($updateMode) { 'Update' } else { 'Install' }
+        $ritual = if ($updateMode) { 'Preserve current setting' } elseif ($ritualCheck.Checked) { 'Enable' } else { 'Leave unchanged' }
+        $summaryLabel.Text = "$action to:`r`n$($folderText.Text.Trim())`r`n`r`nFilter: FinancialAdvisor Filter.filter`r`nCustom sounds: 5 included`r`nRitual filtering: $ritual"
     }
+}
+
+function Test-UpdateMode {
+    return Test-Path -LiteralPath (Join-Path $folderText.Text.Trim() $filterFile)
 }
 
 function Confirm-TargetFolder {
@@ -383,7 +392,9 @@ $nextButton.Add_Click({
 
     try {
         $form.Cursor = [System.Windows.Forms.Cursors]::WaitCursor
-        $result = Install-FilterFiles $folderText.Text.Trim() $ritualCheck.Checked
+        $updateMode = Test-UpdateMode
+        $ritualSetting = if ($updateMode) { $false } else { $ritualCheck.Checked }
+        $result = Install-FilterFiles $folderText.Text.Trim() $ritualSetting
         $form.Cursor = [System.Windows.Forms.Cursors]::Default
         [System.Windows.Forms.MessageBox]::Show("Installation complete.`r`n`r`n$($result.Target)`r`n`r`n$($result.Ritual)`r`n`r`nReselect the filter in-game if Path of Exile 2 is already open.", 'FinancialAdvisor Filter Setup', 'OK', 'Information') | Out-Null
         $form.Close()
