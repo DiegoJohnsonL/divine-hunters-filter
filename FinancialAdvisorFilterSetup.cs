@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -17,16 +18,19 @@ internal sealed class InstallResult
 internal static class InstallerCore
 {
     private const string FilterResource = "FinancialAdvisorFilter";
+    private const string UpdaterResource = "FinancialAdvisorFilterUpdater";
+    private const string UpdateTaskName = "FinancialAdvisor Filter Update";
 
     private static readonly string[] AudioResources =
     {
         "hibdivine.mp3",
         "HibOmenLight.mp3",
         "Echoes.mp3",
+        "OmenOfTheLiege.mp3",
         "OrbOfAnnulment.mp3"
     };
 
-    public static InstallResult Install(string targetFolder, bool enableRitual)
+    public static InstallResult Install(string targetFolder, bool enableRitual, bool recordVersion = true)
     {
         if (string.IsNullOrWhiteSpace(targetFolder))
             throw new InvalidOperationException("Choose a destination folder first.");
@@ -49,11 +53,89 @@ internal static class InstallerCore
             ? EnableRitualFilter(Path.Combine(targetFolder, "poe2_production_Config.ini"))
             : "Ritual filtering was left unchanged.";
 
+        if (recordVersion)
+            WriteInstalledVersion();
+
         return new InstallResult
         {
             Target = targetFolder,
             RitualMessage = ritualMessage
         };
+    }
+
+    public static string ConfigureAutoUpdate(string targetFolder, bool enabled)
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("FINANCIALADVISOR_SKIP_AUTOUPDATE"), "1", StringComparison.Ordinal))
+            return "Automatic updates were skipped for this test run.";
+
+        if (!enabled)
+        {
+            DeleteScheduledTask();
+            return "Automatic updates are disabled.";
+        }
+
+        string updaterFolder = GetUpdaterFolder();
+        string updaterPath = Path.Combine(updaterFolder, "FinancialAdvisorFilterUpdater.exe");
+        Directory.CreateDirectory(updaterFolder);
+        CopyResource(UpdaterResource, updaterPath);
+
+        string taskCommand = QuoteCommandArgument(updaterPath) + " --target " + QuoteCommandArgument(targetFolder);
+        string startTime = DateTime.Now.AddMinutes(2).ToString("HH:mm");
+        string arguments = "/Create /F /SC DAILY /MO 1 /ST " + startTime
+            + " /TN " + QuoteCommandArgument(UpdateTaskName)
+            + " /TR " + QuoteCommandArgument(taskCommand);
+        int exitCode = RunScheduledTaskCommand(arguments);
+        if (exitCode != 0)
+            return "Automatic updates could not be enabled; the filter itself was installed successfully.";
+
+        return "Automatic updates are enabled; the updater checks GitHub daily.";
+    }
+
+    private static string GetUpdaterFolder()
+    {
+        string overrideFolder = Environment.GetEnvironmentVariable("FINANCIALADVISOR_UPDATER_STATE");
+        if (!string.IsNullOrWhiteSpace(overrideFolder))
+            return overrideFolder;
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "FinancialAdvisorFilter");
+    }
+
+    private static void WriteInstalledVersion()
+    {
+        string updaterFolder = GetUpdaterFolder();
+        Directory.CreateDirectory(updaterFolder);
+        File.WriteAllText(Path.Combine(updaterFolder, "installed-version.txt"), BuildInfo.Version, Encoding.UTF8);
+    }
+
+    private static void DeleteScheduledTask()
+    {
+        RunScheduledTaskCommand("/Delete /F /TN " + QuoteCommandArgument(UpdateTaskName));
+    }
+
+    private static int RunScheduledTaskCommand(string arguments)
+    {
+        ProcessStartInfo startInfo = new ProcessStartInfo
+        {
+            FileName = Path.Combine(Environment.SystemDirectory, "schtasks.exe"),
+            Arguments = arguments,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        using (Process process = Process.Start(startInfo))
+        {
+            process.WaitForExit();
+            return process.ExitCode;
+        }
+    }
+
+    private static string QuoteCommandArgument(string value)
+    {
+        return "\"" + value.Replace("\"", "\\\"") + "\"";
     }
 
     private static bool IsPathOfExileRunning()
@@ -111,12 +193,105 @@ internal static class InstallerCore
     }
 }
 
+internal static class PoETheme
+{
+    public static readonly Color Window = Color.FromArgb(9, 10, 12);
+    public static readonly Color HeaderTop = Color.FromArgb(45, 44, 42);
+    public static readonly Color HeaderBottom = Color.FromArgb(19, 19, 20);
+    public static readonly Color Surface = Color.FromArgb(32, 33, 36);
+    public static readonly Color Inset = Color.FromArgb(14, 15, 18);
+    public static readonly Color Footer = Color.FromArgb(19, 20, 22);
+    public static readonly Color Gold = Color.FromArgb(184, 134, 58);
+    public static readonly Color GoldBright = Color.FromArgb(240, 195, 107);
+    public static readonly Color Text = Color.FromArgb(246, 237, 219);
+    public static readonly Color Muted = Color.FromArgb(200, 188, 168);
+    public static readonly Color Danger = Color.FromArgb(187, 92, 69);
+}
+
+internal sealed class PoEButton : Button
+{
+    private bool hovering;
+    private bool pressed;
+
+    public bool Primary { get; set; }
+
+    public PoEButton()
+    {
+        FlatStyle = FlatStyle.Flat;
+        FlatAppearance.BorderSize = 0;
+        UseVisualStyleBackColor = false;
+        Font = new Font("Segoe UI", 10, FontStyle.Bold);
+        Cursor = Cursors.Hand;
+        TabStop = true;
+        SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+    }
+
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        hovering = true;
+        Invalidate();
+        base.OnMouseEnter(e);
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        hovering = false;
+        pressed = false;
+        Invalidate();
+        base.OnMouseLeave(e);
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        pressed = true;
+        Invalidate();
+        base.OnMouseDown(e);
+    }
+
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+        pressed = false;
+        Invalidate();
+        base.OnMouseUp(e);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Color fill = Primary ? PoETheme.Gold : PoETheme.Surface;
+        if (!Enabled)
+            fill = Color.FromArgb(25, 26, 29);
+        if (Enabled && hovering)
+            fill = Primary ? PoETheme.GoldBright : Color.FromArgb(48, 45, 38);
+        if (Enabled && pressed)
+            fill = Primary ? Color.FromArgb(125, 94, 45) : PoETheme.Inset;
+
+        using (SolidBrush brush = new SolidBrush(fill))
+            e.Graphics.FillRectangle(brush, ClientRectangle);
+
+        using (Pen border = new Pen(Primary ? PoETheme.GoldBright : PoETheme.Gold))
+            e.Graphics.DrawRectangle(border, 0, 0, Width - 1, Height - 1);
+
+        Color textColor = !Enabled
+            ? Color.FromArgb(100, 98, 91)
+            : Primary ? Color.FromArgb(24, 21, 17) : PoETheme.Text;
+        TextRenderer.DrawText(
+            e.Graphics,
+            Text,
+            Font,
+            ClientRectangle,
+            textColor,
+            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+    }
+}
+
 internal sealed class InstallerForm : Form
 {
     private readonly Panel[] pages;
     private readonly TextBox folderBox;
     private readonly CheckBox ritualCheck;
+    private readonly CheckBox autoUpdateCheck;
     private readonly Label summaryLabel;
+    private readonly Label stepLabel;
     private readonly Button backButton;
     private readonly Button nextButton;
     private int pageIndex;
@@ -128,85 +303,116 @@ internal sealed class InstallerForm : Form
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(700, 430);
-        BackColor = Color.White;
+        ClientSize = new Size(720, 440);
+        BackColor = PoETheme.Window;
+        Font = new Font("Segoe UI", 10);
 
-        Panel header = new Panel { BackColor = Color.FromArgb(42, 58, 76) };
-        SetBounds(header, 0, 0, 700, 66);
+        Panel header = new Panel { BackColor = PoETheme.HeaderTop };
+        SetBounds(header, 0, 0, 720, 76);
+        header.Paint += Header_Paint;
         Controls.Add(header);
-        Label title = MakeLabel("FinancialAdvisor Filter", 24, 12, 640, 30, 16);
-        title.ForeColor = Color.White;
+        Label title = MakeLabel("FinancialAdvisor Filter", 72, 10, 600, 30, 18, true);
+        title.ForeColor = PoETheme.GoldBright;
         header.Controls.Add(title);
-        Label subtitle = MakeLabel("PoE2 installer", 26, 40, 640, 20, 9);
-        subtitle.ForeColor = Color.FromArgb(215, 225, 235);
+        Label subtitle = MakeLabel("PATH OF EXILE 2  //  FILTER INSTALLATION", 74, 43, 500, 18, 9, false);
+        subtitle.ForeColor = PoETheme.Muted;
         header.Controls.Add(subtitle);
+        stepLabel = MakeLabel("STEP 1 OF 4", 590, 43, 105, 18, 9, false);
+        stepLabel.TextAlign = ContentAlignment.MiddleRight;
+        stepLabel.ForeColor = PoETheme.Gold;
+        header.Controls.Add(stepLabel);
 
-        Panel pageHost = new Panel();
-        SetBounds(pageHost, 0, 66, 700, 304);
+        Panel pageHost = new Panel { BackColor = PoETheme.Surface };
+        SetBounds(pageHost, 18, 92, 684, 258);
+        pageHost.Paint += PageHost_Paint;
         Controls.Add(pageHost);
 
         Panel welcome = NewPage();
-        welcome.Controls.Add(MakeLabel("Welcome", 24, 22, 640, 32, 15));
+        welcome.Controls.Add(MakeLabel("WELCOME, EXILE", 26, 16, 630, 32, 18, true));
         welcome.Controls.Add(MakeLabel(
-            "This wizard installs the FinancialAdvisor loot filter and its four custom sounds into your Path of Exile 2 folder.\r\n\r\nIt can also enable the filter inside Ritual rewards. Close the game before continuing.",
-            24, 68, 640, 100, 11));
+            "This wizard installs the FinancialAdvisor loot filter and five custom drop sounds into your Path of Exile 2 folder.\r\n\r\nIt can also enable the filter inside Ritual rewards. Close the game before continuing.",
+            28, 62, 630, 90, 12, false));
+        welcome.Controls.Add(MakeInsetLabel("Filter + 4 custom sounds + optional Ritual setting", 28, 168, 630, 34));
+        autoUpdateCheck = new CheckBox
+        {
+            Text = "Check for filter updates daily",
+            Checked = true,
+            AutoSize = true,
+            Font = new Font("Segoe UI", 11),
+            ForeColor = PoETheme.Text,
+            BackColor = PoETheme.Surface,
+            Cursor = Cursors.Hand
+        };
+        SetBounds(autoUpdateCheck, 28, 214, 630, 30);
+        welcome.Controls.Add(autoUpdateCheck);
         pageHost.Controls.Add(welcome);
 
         Panel folder = NewPage();
-        folder.Controls.Add(MakeLabel("Choose your Path of Exile 2 folder", 24, 22, 640, 32, 15));
-        folder.Controls.Add(MakeLabel("This is normally the folder containing poe2_production_Config.ini.", 24, 60, 640, 26, 10));
+        folder.Controls.Add(MakeLabel("CHOOSE DESTINATION", 26, 16, 630, 32, 18, true));
+        folder.Controls.Add(MakeLabel("Choose the folder containing poe2_production_Config.ini.", 28, 56, 630, 26, 12, false));
         folderBox = new TextBox
         {
             Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games\\Path of Exile 2")
         };
-        SetBounds(folderBox, 24, 96, 540, 28);
+        folderBox.BackColor = PoETheme.Inset;
+        folderBox.ForeColor = PoETheme.Text;
+        folderBox.BorderStyle = BorderStyle.FixedSingle;
+        folderBox.Font = new Font("Segoe UI", 12);
+        SetBounds(folderBox, 28, 88, 520, 34);
         folder.Controls.Add(folderBox);
-        Button browse = new Button { Text = "Browse..." };
-        SetBounds(browse, 576, 95, 96, 30);
+        PoEButton browse = new PoEButton { Text = "BROWSE..." };
+        SetBounds(browse, 558, 89, 100, 34);
         folder.Controls.Add(browse);
         browse.Click += Browse_Click;
+        folder.Controls.Add(MakeInsetLabel("Usually: Documents\\My Games\\Path of Exile 2", 28, 144, 630, 34));
         pageHost.Controls.Add(folder);
 
         Panel ritual = NewPage();
-        ritual.Controls.Add(MakeLabel("Ritual rewards", 24, 22, 640, 32, 15));
+        ritual.Controls.Add(MakeLabel("RITUAL REWARDS", 26, 16, 630, 32, 18, true));
         ritualCheck = new CheckBox
         {
             Text = "Enable the item filter inside Ritual rewards",
             Checked = true,
             AutoSize = true,
-            Font = new Font("Segoe UI", 11)
+            Font = new Font("Segoe UI", 12),
+            ForeColor = PoETheme.Text,
+            BackColor = PoETheme.Surface,
+            Cursor = Cursors.Hand
         };
-        SetBounds(ritualCheck, 24, 70, 640, 30);
+        SetBounds(ritualCheck, 28, 64, 640, 32);
         ritual.Controls.Add(ritualCheck);
         ritual.Controls.Add(MakeLabel(
             "Recommended. The installer changes apply_item_filter_to_ritual to true and saves a backup of your config file. Uncheck this if you want to change it manually later.",
-            48, 116, 600, 70, 10));
+            52, 106, 610, 66, 12, false));
+        ritual.Controls.Add(MakeInsetLabel("The game must be closed while this setting is changed.", 28, 186, 630, 34));
         pageHost.Controls.Add(ritual);
 
         Panel ready = NewPage();
-        ready.Controls.Add(MakeLabel("Ready to install", 24, 22, 640, 32, 15));
-        summaryLabel = MakeLabel("", 24, 70, 640, 150, 11);
+        ready.Controls.Add(MakeLabel("READY TO DEPLOY", 26, 16, 630, 32, 18, true));
+        summaryLabel = MakeInsetLabel("", 28, 60, 630, 150);
+        summaryLabel.Font = new Font("Consolas", 11);
         ready.Controls.Add(summaryLabel);
         pageHost.Controls.Add(ready);
 
         pages = new[] { welcome, folder, ritual, ready };
 
-        Panel footer = new Panel { BackColor = Color.FromArgb(245, 245, 245) };
-        SetBounds(footer, 0, 370, 700, 60);
+        Panel footer = new Panel { BackColor = PoETheme.Footer };
+        SetBounds(footer, 0, 368, 720, 72);
+        footer.Paint += Footer_Paint;
         Controls.Add(footer);
 
-        Button cancel = new Button { Text = "Cancel" };
-        SetBounds(cancel, 510, 15, 78, 30);
+        PoEButton cancel = new PoEButton { Text = "CANCEL" };
+        SetBounds(cancel, 458, 19, 86, 34);
         footer.Controls.Add(cancel);
         cancel.Click += delegate { Close(); };
 
-        backButton = new Button { Text = "< Back" };
-        SetBounds(backButton, 420, 15, 78, 30);
+        backButton = new PoEButton { Text = "< BACK" };
+        SetBounds(backButton, 366, 19, 86, 34);
         footer.Controls.Add(backButton);
         backButton.Click += Back_Click;
 
-        nextButton = new Button { Text = "Next >" };
-        SetBounds(nextButton, 596, 15, 80, 30);
+        nextButton = new PoEButton { Text = "NEXT >", Primary = true };
+        SetBounds(nextButton, 554, 19, 112, 34);
         footer.Controls.Add(nextButton);
         nextButton.Click += Next_Click;
 
@@ -220,15 +426,26 @@ internal sealed class InstallerForm : Form
         return new Panel { Dock = DockStyle.Fill, Visible = false };
     }
 
-    private static Label MakeLabel(string text, int x, int y, int width, int height, int fontSize)
+    private static Label MakeLabel(string text, int x, int y, int width, int height, int fontSize, bool display)
     {
         Label label = new Label
         {
             Text = text,
             AutoSize = false,
-            Font = new Font("Segoe UI", fontSize)
+            Font = display ? new Font("Georgia", fontSize, FontStyle.Bold) : new Font("Segoe UI", fontSize),
+            ForeColor = PoETheme.Text,
+            BackColor = Color.Transparent
         };
         SetBounds(label, x, y, width, height);
+        return label;
+    }
+
+    private static Label MakeInsetLabel(string text, int x, int y, int width, int height)
+    {
+        Label label = MakeLabel(text, x, y, width, height, 10, false);
+        label.BackColor = PoETheme.Inset;
+        label.ForeColor = PoETheme.Muted;
+        label.Padding = new Padding(8, 6, 8, 5);
         return label;
     }
 
@@ -257,15 +474,51 @@ internal sealed class InstallerForm : Form
             page.Visible = false;
         pages[pageIndex].Visible = true;
         backButton.Enabled = pageIndex > 0;
-        nextButton.Text = pageIndex == pages.Length - 1 ? "Install" : "Next >";
+        nextButton.Text = pageIndex == pages.Length - 1 ? "INSTALL" : "NEXT >";
+        stepLabel.Text = "STEP " + (pageIndex + 1) + " OF " + pages.Length;
 
         if (pageIndex == pages.Length - 1)
         {
             string ritual = ritualCheck.Checked ? "Enable" : "Leave unchanged";
             summaryLabel.Text =
                 "Install to:\r\n" + folderBox.Text.Trim() +
-                "\r\n\r\nFilter: FinancialAdvisor Filter.filter\r\nCustom sounds: 4 included\r\nRitual filtering: " + ritual;
+                "\r\n\r\nFilter: FinancialAdvisor Filter.filter\r\nCustom sounds: 4 included\r\nRitual filtering: " + ritual +
+                "\r\nAutomatic updates: " + (autoUpdateCheck.Checked ? "Daily check" : "Disabled");
         }
+    }
+
+    private static void Header_Paint(object sender, PaintEventArgs e)
+    {
+        Panel header = (Panel)sender;
+        using (LinearGradientBrush brush = new LinearGradientBrush(header.ClientRectangle, PoETheme.HeaderTop, PoETheme.HeaderBottom, 90f))
+            e.Graphics.FillRectangle(brush, header.ClientRectangle);
+
+        using (Pen line = new Pen(PoETheme.Gold, 1))
+            e.Graphics.DrawLine(line, 0, header.Height - 2, header.Width, header.Height - 2);
+
+        using (Pen sigil = new Pen(PoETheme.GoldBright, 1.4f))
+        {
+            e.Graphics.DrawEllipse(sigil, 18, 16, 38, 38);
+            e.Graphics.DrawEllipse(sigil, 25, 23, 24, 24);
+            Point[] diamond = { new Point(37, 13), new Point(47, 35), new Point(37, 57), new Point(27, 35) };
+            e.Graphics.DrawPolygon(sigil, diamond);
+        }
+    }
+
+    private static void PageHost_Paint(object sender, PaintEventArgs e)
+    {
+        Panel panel = (Panel)sender;
+        using (Pen border = new Pen(PoETheme.Gold, 1))
+            e.Graphics.DrawRectangle(border, 0, 0, panel.Width - 1, panel.Height - 1);
+        using (Pen inner = new Pen(Color.FromArgb(59, 53, 43), 1))
+            e.Graphics.DrawRectangle(inner, 4, 4, panel.Width - 9, panel.Height - 9);
+    }
+
+    private static void Footer_Paint(object sender, PaintEventArgs e)
+    {
+        Panel footer = (Panel)sender;
+        using (Pen line = new Pen(Color.FromArgb(67, 55, 39), 1))
+            e.Graphics.DrawLine(line, 0, 0, footer.Width, 0);
     }
 
     private bool ConfirmTargetFolder()
@@ -321,9 +574,10 @@ internal sealed class InstallerForm : Form
         {
             Cursor = Cursors.WaitCursor;
             InstallResult result = InstallerCore.Install(folderBox.Text.Trim(), ritualCheck.Checked);
+            string updateMessage = InstallerCore.ConfigureAutoUpdate(folderBox.Text.Trim(), autoUpdateCheck.Checked);
             Cursor = Cursors.Default;
             MessageBox.Show(this,
-                "Installation complete.\r\n\r\n" + result.Target + "\r\n\r\n" + result.RitualMessage + "\r\n\r\nReselect the filter in-game if Path of Exile 2 is already open.",
+                "Installation complete.\r\n\r\n" + result.Target + "\r\n\r\n" + result.RitualMessage + "\r\n\r\n" + updateMessage + "\r\n\r\nReselect the filter in-game if Path of Exile 2 is already open.",
                 "FinancialAdvisor Filter Setup", MessageBoxButtons.OK, MessageBoxIcon.Information);
             Close();
         }
@@ -340,11 +594,25 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && string.Equals(args[0], "--update", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                InstallerCore.Install(args[1], false);
+                InstallerCore.ConfigureAutoUpdate(args[1], true);
+                return 0;
+            }
+            catch
+            {
+                return 1;
+            }
+        }
+
         if (args.Length == 2 && string.Equals(args[0], "--test", StringComparison.OrdinalIgnoreCase))
         {
             try
             {
-                InstallerCore.Install(args[1], true);
+                InstallerCore.Install(args[1], true, false);
                 return 0;
             }
             catch

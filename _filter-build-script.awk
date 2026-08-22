@@ -51,11 +51,12 @@ NR < 15 && /^#(name|version|realm|errors|hash|filterVersion|filterType|lastUpdat
 	print "# 13) Uniques, $tier->hideable (184 bases): left HIDDEN, as stock. Verified against live prices -"
 	print "#     the most valuable one is ~4ex, none above 0.05 div. The nightly economy script will"
 	print "#     promote any of them that climbs past 0.5 div, so nothing valuable stays buried."
-	print "# 14) Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes and Orb of"
-	print "#     Annulment. Each gets a single-base rule above its parent with the parent's styling"
-	print "#     copied verbatim. OrbOfAnnulment.mp3 already combines the trimmed voice recording with"
-	print "#     the stock Divine ding, so that rule must not use Continue. Needs hibdivine.mp3,"
-	print "#     HibOmenLight.mp3, Echoes.mp3 and OrbOfAnnulment.mp3 beside the .filter file."
+	print "# 14) Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes, Omen of"
+	print "#     the Liege and Orb of Annulment. Each gets a single-base rule above its parent. The"
+	print "#     first three copy their parent's styling; Omen of the Liege uses a deep-violet failure"
+	print "#     style, and OrbOfAnnulment.mp3 already combines voice + Divine ding (no Continue)."
+	print "#     Needs hibdivine.mp3, HibOmenLight.mp3, Echoes.mp3, OmenOfTheLiege.mp3 and"
+	print "#     OrbOfAnnulment.mp3 beside the .filter file."
 	print "# 15) Gold: in maps only stacks of 5000+ show, and at font 30 instead of the stock 40. The"
 	print "#     2000+ rule is disabled. Levelling (AreaLevel <= 24 / <= 64) left at stock."
 	print "# 16) Quality currency: Gemcutter's Prism, Arcanist's Etcher (caster weapons) and Glassblower's"
@@ -211,8 +212,9 @@ splint { if ($0 ~ /^[[:space:]]*$/) { splint = 0; print "" } next }
 # ---------- Custom drop sounds ----------
 # Divine Orb, Omen of Light, Omen of Abyssal Echoes and Orb of Annulment each live inside a
 # multi-base rule.
-# Each gets a single-base rule directly above its parent, styling copied verbatim so only the
-# sound differs. CustomAlertSoundOptional, not CustomAlertSound: a missing file then falls back
+# Each gets a single-base rule directly above its parent. Most copy the parent's styling; a rule
+# can use a deliberate custom style when the item needs a different meaning. CustomAlertSoundOptional,
+# not CustomAlertSound: a missing file then falls back
 # to the default sound instead of breaking the whole filter load. When cont is true, Continue
 # lets the parent rule also run; use it only when the custom file does not already contain the
 # parent alert sound. OrbOfAnnulment.mp3 is pre-mixed, so its rule does not use Continue.
@@ -303,6 +305,15 @@ function soundrule(title, cls, base, style, sound, cont,   n, i, parts) {
 	soundrule("Omen of Abyssal Echoes", "\"Omen\"", "Omen of Abyssal Echoes", \
 	          "SetFontSize 45|SetTextColor 255 255 255 255|SetBorderColor 255 255 255 255|SetBackgroundColor 245 105 90 255|PlayEffect Red|MinimapIcon 0 Red Circle", \
 	          "Echoes.mp3")
+	print; next
+}
+
+/^Hide # %H5 \$type->currency->omen \$tier->d !currency_d$/ {
+	# Omen of the Liege is the tell that the Abyss smoke pull was missed. Keep it visible,
+	# but make the presentation unmistakably negative without spending the red palette.
+	soundrule("Omen of the Liege", "\"Omen\"", "Omen of the Liege", \
+	          "SetFontSize 42|SetTextColor 255 255 255 255|SetBorderColor 190 70 220 255|SetBackgroundColor 48 0 72 255|PlayEffect Purple|MinimapIcon 0 Purple Hexagon", \
+	          "OmenOfTheLiege.mp3")
 	print; next
 }
 

@@ -25,8 +25,24 @@ Choose one option:
 3. Click **Next**, choose your PoE2 folder, leave Ritual filtering checked if wanted, and click
    **Install**.
 
-The EXE already contains the filter and all four custom sounds. No Git, PowerShell, or command
+The EXE already contains the filter and all five custom sounds. No Git, PowerShell, or command
 prompt is required. `Install-FinancialAdvisorFilter.cmd` remains available as a script fallback.
+
+## Automatic updates
+
+The one-file installer can optionally register a per-user Windows task named
+`FinancialAdvisor Filter Update`. Once enabled, it checks the latest GitHub Release once per day,
+downloads a newer `FinancialAdvisorFilterSetup.exe` when available, verifies GitHub's SHA-256 asset
+digest, and applies the filter and sounds silently. It skips the check while Path of Exile 2 is
+running and preserves the Ritual setting.
+
+The helper and its log live under `%LOCALAPPDATA%\FinancialAdvisorFilter`, not in the game folder.
+The updater never runs `git pull` and never changes the game's Ritual setting during an update.
+To disable it later, rerun the installer with the checkbox cleared or run:
+
+```powershell
+schtasks /Delete /TN "FinancialAdvisor Filter Update" /F
+```
 
 ### Option A: GitHub (requires Git)
 
@@ -41,6 +57,7 @@ Copy-Item -Path @(
   "$repo\hibdivine.mp3"
   "$repo\HibOmenLight.mp3"
   "$repo\Echoes.mp3"
+  "$repo\OmenOfTheLiege.mp3"
   "$repo\OrbOfAnnulment.mp3"
 ) -Destination $game -Force
 ```
@@ -49,8 +66,8 @@ Copy-Item -Path @(
 
 1. Open the [GitHub repository](https://github.com/DiegoJohnsonL/poe2-financialadvisor-filter).
 2. Select **Code → Download ZIP**, then extract it.
-3. Copy `FinancialAdvisor Filter.filter`, `hibdivine.mp3`, `HibOmenLight.mp3`, `Echoes.mp3`, and
-   `OrbOfAnnulment.mp3` into the destination folder above.
+3. Copy `FinancialAdvisor Filter.filter`, `hibdivine.mp3`, `HibOmenLight.mp3`, `Echoes.mp3`,
+   `OmenOfTheLiege.mp3`, and `OrbOfAnnulment.mp3` into the destination folder above.
 
 Then:
 
@@ -70,7 +87,8 @@ Then:
    currency overrides that must survive economy re-tiering belong above `$tier->s`.
 4. The public installer is `FinancialAdvisorFilterSetup.exe`, built from
    `FinancialAdvisorFilterSetup.cs`. Rebuild it with `Build-FinancialAdvisorSetup.ps1` whenever
-   the filter or included sounds change.
+   the filter, included sounds, or installer/updater code changes. Bump the version in
+   `FinancialAdvisorFilterVersion.cs` before publishing a new release.
 5. Dry-run and validate the filter build:
 
    ```powershell
@@ -138,7 +156,7 @@ and the walkthrough video [Hidden POE2 Setting: Filters in Rituals](https://www.
 
 ## Custom drop sounds (included)
 
-The GitHub and ZIP downloads include all four custom sound files. Keep them **beside** the
+The GitHub and ZIP downloads include all five custom sound files. Keep them **beside** the
 `.filter` file:
 
 | File | Plays for |
@@ -146,12 +164,13 @@ The GitHub and ZIP downloads include all four custom sound files. Keep them **be
 | `hibdivine.mp3` | Divine Orb |
 | `HibOmenLight.mp3` | Omen of Light |
 | `Echoes.mp3` | Omen of Abyssal Echoes |
+| `OmenOfTheLiege.mp3` | Omen of the Liege; deep-violet failure alert for a missed Abyss smoke pull |
 | `OrbOfAnnulment.mp3` | Orb of Annulment voice mixed with the stock Divine ding |
 
 They are wired with `CustomAlertSoundOptional` as a safety fallback, but the intended installation
-includes all four files.
+includes all five files.
 The annulment MP3 already contains both layers, so its rule does **not** use `Continue`; this avoids
-playing the Divine ding twice. The other three assets already contain their full custom audio.
+playing the Divine ding twice. The other four assets already contain their full custom audio.
 See [`OrbOfAnnulment-audio-process.md`](OrbOfAnnulment-audio-process.md) for the repeatable FFmpeg recipe.
 
 ---
@@ -276,7 +295,7 @@ reproduced in the filter's own header. Summary:
 | 11 | Uniques: T3 + T3-boss shown, 5 optional rules enabled (9L parity) |
 | 12 | Economy crafting bases: only the ilvl 82 group survives |
 | 13 | Uniques `$tier->hideable`: left hidden, economy script promotes any that climb |
-| 14 | Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes, Orb of Annulment |
+| 14 | Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes, Omen of the Liege, and Orb of Annulment |
 | 15 | Gold: maps show 5000+ only, at font 30. Levelling left at stock |
 | 16 | Quality currency (Gemcutter's Prism, Arcanist's Etcher, Glassblower's Bauble) hidden at AreaLevel ≥ 65 |
 | 17 | Exalted Orb + Greater Exalted hidden at any stack; Vaal Orb only in stacks of 2+; Perfect Exalted untouched |
@@ -294,6 +313,8 @@ reproduced in the filter's own header. Summary:
 | `_filter-economy-update.ps1` | Build + economy pipeline |
 | `FinancialAdvisorFilterSetup.exe` | One-file Windows installer; contains the filter and custom sounds |
 | `FinancialAdvisorFilterSetup.cs` | Source for the Windows installer |
+| `FinancialAdvisorFilterUpdater.cs` | Silent GitHub Release updater used by the daily task |
+| `FinancialAdvisorFilterVersion.cs` | Release version embedded in the installer and updater |
 | `Build-FinancialAdvisorSetup.ps1` | Rebuilds the one-file installer EXE |
 | `OrbOfAnnulment-audio-process.md` | Repeatable FFmpeg recipe for voice + ding alerts |
 | `Install-FinancialAdvisorFilter.cmd` | Script-based installer fallback |

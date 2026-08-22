@@ -24,6 +24,7 @@
 !hibdivine.mp3
 !HibOmenLight.mp3
 !Echoes.mp3
+!OmenOfTheLiege.mp3
 !OrbOfAnnulment.ogg
 !OrbOfAnnulment.mp3
 !OrbOfAnnulment-audio-process.md
@@ -31,6 +32,8 @@
 !Install-FinancialAdvisorFilter.cmd
 !FinancialAdvisorFilterSetup.cs
 !FinancialAdvisorFilterSetup.exe
+!FinancialAdvisorFilterUpdater.cs
+!FinancialAdvisorFilterVersion.cs
 !Build-FinancialAdvisorSetup.ps1
 
 # Explicitly excluded even though they sit beside the tracked files:

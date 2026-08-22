@@ -35,11 +35,12 @@
 # 13) Uniques, $tier->hideable (184 bases): left HIDDEN, as stock. Verified against live prices -
 #     the most valuable one is ~4ex, none above 0.05 div. The nightly economy script will
 #     promote any of them that climbs past 0.5 div, so nothing valuable stays buried.
-# 14) Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes and Orb of
-#     Annulment. Each gets a single-base rule above its parent with the parent's styling
-#     copied verbatim. OrbOfAnnulment.mp3 already combines the trimmed voice recording with
-#     the stock Divine ding, so that rule must not use Continue. Needs hibdivine.mp3,
-#     HibOmenLight.mp3, Echoes.mp3 and OrbOfAnnulment.mp3 beside the .filter file.
+# 14) Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes, Omen of
+#     the Liege and Orb of Annulment. Each gets a single-base rule above its parent. The
+#     first three copy their parent's styling; Omen of the Liege uses a deep-violet failure
+#     style, and OrbOfAnnulment.mp3 already combines voice + Divine ding (no Continue).
+#     Needs hibdivine.mp3, HibOmenLight.mp3, Echoes.mp3, OmenOfTheLiege.mp3 and
+#     OrbOfAnnulment.mp3 beside the .filter file.
 # 15) Gold: in maps only stacks of 5000+ show, and at font 30 instead of the stock 40. The
 #     2000+ rule is disabled. Levelling (AreaLevel <= 24 / <= 64) left at stock.
 # 16) Quality currency: Gemcutter's Prism, Arcanist's Etcher (caster weapons) and Glassblower's
@@ -3868,6 +3869,17 @@ Show # %H6 $type->currency->omen $tier->c !currency_c
 	PlayEffect White
 	MinimapIcon 1 Yellow Circle
 
+Show # [CUSTOM] Omen of the Liege - custom drop sound
+	Class == "Omen"
+	BaseType == "Omen of the Liege"
+	SetFontSize 42
+	SetTextColor 255 255 255 255
+	SetBorderColor 190 70 220 255
+	SetBackgroundColor 48 0 72 255
+	PlayEffect Purple
+	MinimapIcon 0 Purple Hexagon
+	CustomAlertSoundOptional "OmenOfTheLiege.mp3" 300
+
 Hide # %H5 $type->currency->omen $tier->d !currency_d
 	Class == "Omen"
 	BaseType == "Omen of Putrefaction" "Omen of Refreshment" "Omen of Sinistral Necromancy" "Omen of the Liege"
@@ -3972,7 +3984,7 @@ Show # $type->uniques $tier->sekhemaring !uniques_a
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live market overrides - regenerated in full on every run, do not hand-edit
 #===============================================================================================================
-# Generated 2026-08-22 14:31 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 358 ex
+# Generated 2026-08-22 15:08 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 359 ex
 # Thresholds: S >= 10 div, A >= 2 div, B >= 0.5 div. Minimum 20 live listings.
 # Prices are the median of the trailing price log, taken on the best unique each base can actually drop.
 # Uniques NeverSink flags NonWorldDrop are excluded (62 of them) - they never drop from monsters,

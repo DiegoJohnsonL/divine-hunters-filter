@@ -9,12 +9,23 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
+$themeWindow = [System.Drawing.Color]::FromArgb(9, 10, 12)
+$themeHeader = [System.Drawing.Color]::FromArgb(45, 44, 42)
+$themeSurface = [System.Drawing.Color]::FromArgb(32, 33, 36)
+$themeInset = [System.Drawing.Color]::FromArgb(14, 15, 18)
+$themeFooter = [System.Drawing.Color]::FromArgb(19, 20, 22)
+$themeGold = [System.Drawing.Color]::FromArgb(184, 134, 58)
+$themeGoldBright = [System.Drawing.Color]::FromArgb(240, 195, 107)
+$themeText = [System.Drawing.Color]::FromArgb(246, 237, 219)
+$themeMuted = [System.Drawing.Color]::FromArgb(200, 188, 168)
+
 $sourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $filterFile = 'FinancialAdvisor Filter.filter'
 $audioFiles = @(
     'hibdivine.mp3'
     'HibOmenLight.mp3'
     'Echoes.mp3'
+    'OmenOfTheLiege.mp3'
     'OrbOfAnnulment.mp3'
 )
 $requiredFiles = @($filterFile) + $audioFiles
@@ -62,8 +73,25 @@ function New-TextLabel {
     $label.Text = $Text
     $label.AutoSize = $false
     $label.Font = New-Object System.Drawing.Font('Segoe UI', $FontSize)
+    $label.ForeColor = $themeText
+    $label.BackColor = [System.Drawing.Color]::Transparent
     Set-Bounds $label $X $Y $Width $Height
     return $label
+}
+
+function New-PoEButton {
+    param([string] $Text, [bool] $Primary = $false)
+    $button = New-Object System.Windows.Forms.Button
+    $button.Text = $Text
+    $button.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $button.FlatAppearance.BorderSize = 1
+    $button.FlatAppearance.BorderColor = if ($Primary) { $themeGoldBright } else { $themeGold }
+    $button.UseVisualStyleBackColor = $false
+    $button.BackColor = if ($Primary) { $themeGold } else { $themeSurface }
+    $button.ForeColor = if ($Primary) { [System.Drawing.Color]::FromArgb(24, 21, 17) } else { $themeText }
+    $button.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    $button.Cursor = [System.Windows.Forms.Cursors]::Hand
+    return $button
 }
 
 function Read-ConfigText {
@@ -163,40 +191,73 @@ $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
 $form.MaximizeBox = $false
 $form.MinimizeBox = $false
-$form.ClientSize = New-Object System.Drawing.Size(700, 430)
-$form.BackColor = [System.Drawing.Color]::White
+$form.ClientSize = New-Object System.Drawing.Size(720, 440)
+$form.BackColor = $themeWindow
 
 $header = New-Object System.Windows.Forms.Panel
-$header.BackColor = [System.Drawing.Color]::FromArgb(42, 58, 76)
-Set-Bounds $header 0 0 700 66
+$header.BackColor = $themeHeader
+Set-Bounds $header 0 0 720 76
+$header.Add_Paint({
+    param($sender, $paintEvent)
+    $pen = New-Object System.Drawing.Pen($themeGoldBright, 1.4)
+    $paintEvent.Graphics.DrawEllipse($pen, 18, 16, 38, 38)
+    $paintEvent.Graphics.DrawEllipse($pen, 25, 23, 24, 24)
+    $paintEvent.Graphics.DrawPolygon($pen, @([System.Drawing.Point]::new(37, 13), [System.Drawing.Point]::new(47, 35), [System.Drawing.Point]::new(37, 57), [System.Drawing.Point]::new(27, 35)))
+    $paintEvent.Graphics.DrawLine((New-Object System.Drawing.Pen($themeGold, 1)), 0, 74, 720, 74)
+    $pen.Dispose()
+})
 $form.Controls.Add($header)
 
-$headerTitle = New-TextLabel 'FinancialAdvisor Filter' 24 12 640 30 16
-$headerTitle.ForeColor = [System.Drawing.Color]::White
+$headerTitle = New-TextLabel 'FinancialAdvisor Filter' 72 10 600 30 18
+$headerTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawing.FontStyle]::Bold)
+$headerTitle.ForeColor = $themeGoldBright
 $header.Controls.Add($headerTitle)
-$headerSubtitle = New-TextLabel 'PoE2 installer' 26 40 640 20 9
-$headerSubtitle.ForeColor = [System.Drawing.Color]::FromArgb(215, 225, 235)
+$headerSubtitle = New-TextLabel 'PATH OF EXILE 2  //  FILTER INSTALLATION' 74 43 500 18 9
+$headerSubtitle.ForeColor = $themeMuted
 $header.Controls.Add($headerSubtitle)
+$stepLabel = New-TextLabel 'STEP 1 OF 4' 590 43 105 18 9
+$stepLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
+$stepLabel.ForeColor = $themeGold
+$header.Controls.Add($stepLabel)
 
 $pageHost = New-Object System.Windows.Forms.Panel
-Set-Bounds $pageHost 0 66 700 304
+$pageHost.BackColor = $themeSurface
+Set-Bounds $pageHost 18 92 684 258
+$pageHost.Add_Paint({
+    param($sender, $paintEvent)
+    $paintEvent.Graphics.DrawRectangle((New-Object System.Drawing.Pen($themeGold, 1)), 0, 0, 683, 257)
+    $paintEvent.Graphics.DrawRectangle((New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(59, 53, 43), 1)), 4, 4, 675, 247)
+})
 $form.Controls.Add($pageHost)
 
 $welcomePage = New-Page
-$welcomePage.Controls.Add((New-TextLabel 'Welcome' 24 22 640 32 15))
-$welcomePage.Controls.Add((New-TextLabel "This wizard copies the FinancialAdvisor loot filter and its four custom sounds into your Path of Exile 2 folder.`r`n`r`nIt can also enable the filter inside Ritual rewards. Close the game before continuing." 24 68 640 100 11))
+$welcomeTitle = New-TextLabel 'WELCOME, EXILE' 26 16 630 32 18
+$welcomeTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawing.FontStyle]::Bold)
+$welcomeTitle.ForeColor = $themeGoldBright
+$welcomePage.Controls.Add($welcomeTitle)
+$welcomePage.Controls.Add((New-TextLabel "This wizard copies the FinancialAdvisor loot filter and five custom drop sounds into your Path of Exile 2 folder.`r`n`r`nIt can also enable the filter inside Ritual rewards. Close the game before continuing." 28 62 630 90 12))
+$welcomePage.Controls.Add((New-TextLabel "Filter + 4 custom sounds + optional Ritual setting" 28 168 630 34 10))
+$welcomePage.Controls[2].BackColor = $themeInset
+$welcomePage.Controls[2].ForeColor = $themeMuted
+$welcomePage.Controls[2].Padding = New-Object System.Windows.Forms.Padding(8, 6, 8, 5)
 $pageHost.Controls.Add($welcomePage)
 
 $folderPage = New-Page
-$folderPage.Controls.Add((New-TextLabel 'Choose your Path of Exile 2 folder' 24 22 640 32 15))
-$folderPage.Controls.Add((New-TextLabel 'This is normally the folder containing poe2_production_Config.ini.' 24 60 640 26 10))
+$folderTitle = New-TextLabel 'CHOOSE DESTINATION' 26 16 630 32 18
+$folderTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawing.FontStyle]::Bold)
+$folderTitle.ForeColor = $themeGoldBright
+$folderPage.Controls.Add($folderTitle)
+$folderPage.Controls.Add((New-TextLabel 'Choose the folder containing poe2_production_Config.ini.' 28 56 630 26 12))
 $folderText = New-Object System.Windows.Forms.TextBox
 $folderText.Text = $defaultFolder
-Set-Bounds $folderText 24 96 540 28
+$folderText.BackColor = $themeInset
+$folderText.ForeColor = $themeText
+$folderText.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$folderText.Font = New-Object System.Drawing.Font('Segoe UI', 12)
+Set-Bounds $folderText 28 88 520 34
 $folderPage.Controls.Add($folderText)
-$browseButton = New-Object System.Windows.Forms.Button
-$browseButton.Text = 'Browse...'
-Set-Bounds $browseButton 576 95 96 30
+$browseButton = New-PoEButton 'BROWSE...'
+Set-Bounds $browseButton 558 89 100 34
 $folderPage.Controls.Add($browseButton)
 $browseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
@@ -208,45 +269,67 @@ $browseButton.Add_Click({
     }
     $dialog.Dispose()
 })
+$folderPage.Controls.Add((New-TextLabel 'Usually: Documents\My Games\Path of Exile 2' 28 144 630 34 10))
+$folderPage.Controls[4].BackColor = $themeInset
+$folderPage.Controls[4].ForeColor = $themeMuted
+$folderPage.Controls[4].Padding = New-Object System.Windows.Forms.Padding(8, 6, 8, 5)
 $pageHost.Controls.Add($folderPage)
 
 $ritualPage = New-Page
-$ritualPage.Controls.Add((New-TextLabel 'Ritual rewards' 24 22 640 32 15))
+$ritualTitle = New-TextLabel 'RITUAL REWARDS' 26 16 630 32 18
+$ritualTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawing.FontStyle]::Bold)
+$ritualTitle.ForeColor = $themeGoldBright
+$ritualPage.Controls.Add($ritualTitle)
 $ritualCheck = New-Object System.Windows.Forms.CheckBox
 $ritualCheck.Text = 'Enable the item filter inside Ritual rewards'
 $ritualCheck.Checked = $true
 $ritualCheck.AutoSize = $true
-$ritualCheck.Font = New-Object System.Drawing.Font('Segoe UI', 11)
-Set-Bounds $ritualCheck 24 70 640 30
+$ritualCheck.Font = New-Object System.Drawing.Font('Segoe UI', 12)
+$ritualCheck.ForeColor = $themeText
+$ritualCheck.BackColor = $themeSurface
+$ritualCheck.Cursor = [System.Windows.Forms.Cursors]::Hand
+Set-Bounds $ritualCheck 28 64 640 32
 $ritualPage.Controls.Add($ritualCheck)
-$ritualPage.Controls.Add((New-TextLabel 'Recommended. The installer changes apply_item_filter_to_ritual to true and saves a backup of your config file. Uncheck this if you want to change it manually later.' 48 116 600 70 10))
+$ritualPage.Controls.Add((New-TextLabel 'Recommended. The installer changes apply_item_filter_to_ritual to true and saves a backup of your config file. Uncheck this if you want to change it manually later.' 52 106 610 66 12))
+$ritualPage.Controls.Add((New-TextLabel 'The game must be closed while this setting is changed.' 28 186 630 34 10))
+$ritualPage.Controls[3].BackColor = $themeInset
+$ritualPage.Controls[3].ForeColor = $themeMuted
+$ritualPage.Controls[3].Padding = New-Object System.Windows.Forms.Padding(8, 6, 8, 5)
 $pageHost.Controls.Add($ritualPage)
 
 $readyPage = New-Page
-$readyPage.Controls.Add((New-TextLabel 'Ready to install' 24 22 640 32 15))
-$summaryLabel = New-TextLabel '' 24 70 640 150 11
+$readyTitle = New-TextLabel 'READY TO DEPLOY' 26 16 630 32 18
+$readyTitle.Font = New-Object System.Drawing.Font('Georgia', 18, [System.Drawing.FontStyle]::Bold)
+$readyTitle.ForeColor = $themeGoldBright
+$readyPage.Controls.Add($readyTitle)
+$summaryLabel = New-TextLabel '' 28 60 630 150 11
+$summaryLabel.BackColor = $themeInset
+$summaryLabel.ForeColor = $themeMuted
+$summaryLabel.Font = New-Object System.Drawing.Font('Consolas', 11)
+$summaryLabel.Padding = New-Object System.Windows.Forms.Padding(8, 6, 8, 5)
 $readyPage.Controls.Add($summaryLabel)
 $pageHost.Controls.Add($readyPage)
 
 $footer = New-Object System.Windows.Forms.Panel
-$footer.BackColor = [System.Drawing.Color]::FromArgb(245, 245, 245)
-Set-Bounds $footer 0 370 700 60
+$footer.BackColor = $themeFooter
+Set-Bounds $footer 0 368 720 72
+$footer.Add_Paint({
+    param($sender, $paintEvent)
+    $paintEvent.Graphics.DrawLine((New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(67, 55, 39), 1)), 0, 0, 720, 0)
+})
 $form.Controls.Add($footer)
 
-$cancelButton = New-Object System.Windows.Forms.Button
-$cancelButton.Text = 'Cancel'
-Set-Bounds $cancelButton 510 15 78 30
+$cancelButton = New-PoEButton 'CANCEL'
+Set-Bounds $cancelButton 458 19 86 34
 $footer.Controls.Add($cancelButton)
 $cancelButton.Add_Click({ $form.Close() })
 
-$backButton = New-Object System.Windows.Forms.Button
-$backButton.Text = '< Back'
-Set-Bounds $backButton 420 15 78 30
+$backButton = New-PoEButton '< BACK'
+Set-Bounds $backButton 366 19 86 34
 $footer.Controls.Add($backButton)
 
-$nextButton = New-Object System.Windows.Forms.Button
-$nextButton.Text = 'Next >'
-Set-Bounds $nextButton 596 15 80 30
+$nextButton = New-PoEButton 'NEXT >' $true
+Set-Bounds $nextButton 554 19 112 34
 $footer.Controls.Add($nextButton)
 
 $state = @{ Page = 0 }
@@ -256,7 +339,8 @@ function Show-Page {
     foreach ($page in $pages) { $page.Visible = $false }
     $pages[$state.Page].Visible = $true
     $backButton.Enabled = $state.Page -gt 0
-    $nextButton.Text = if ($state.Page -eq ($pages.Count - 1)) { 'Install' } else { 'Next >' }
+    $nextButton.Text = if ($state.Page -eq ($pages.Count - 1)) { 'INSTALL' } else { 'NEXT >' }
+    $stepLabel.Text = "STEP $($state.Page + 1) OF $($pages.Count)"
     if ($state.Page -eq ($pages.Count - 1)) {
         $summaryLabel.Text = "Install to:`r`n$($folderText.Text.Trim())`r`n`r`nFilter: FinancialAdvisor Filter.filter`r`nCustom sounds: 4 included`r`nRitual filtering: $($(if ($ritualCheck.Checked) { 'Enable' } else { 'Leave unchanged' }))"
     }
