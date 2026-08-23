@@ -68,6 +68,9 @@
 #     unknown or unpriced names remain visible.
 # 22) Endgame tier-5 rare/magic gear: all rare drops are hidden; magic drops are hidden except
 #     Ancestral Tiara and Obliterator Bow as narrow crafting-base safeguards.
+# 23) Ritual reward scanning: 12 known low-priority Ritual Omens are hidden above the whole
+#     Omen tierlist. The 16 selected Ritual Omens retain stock styling; Abyss-only and
+#     unknown/future Omens are untouched.
 #
 #------------------------------------
 # LINKS TO LATEST VERSION AND FILTER EDITOR
@@ -2660,13 +2663,13 @@ Show # $type->relics->generic $tier->any !exotics_dtier
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live lineage support pickup policy - regenerated in full on every run
 #===============================================================================================================
-# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Generated 2026-08-23 13:44 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 344 ex
 # Normal floor: 0.5 div with 5+ listings; thin floor: 1 div with 3+ listings; chase floor: 2 div.
 # Unknown or unpriced lineage supports remain visible so new content and thin markets cannot be hidden accidentally.
 
 Show # [CUSTOM][ECONOMY] lineage support value floor >= 0.5 div
 	Class == "Skill Gems" "Support Gems"
-	BaseType == "Garukhan's Resolve" "Uul-Netol's Embrace" "Seraph's Heart" "Atziri's Communion" "Uhtred's Exodus" "Her Declaration" "Dialla's Desire" "Esh's Radiance" "Rigwald's Ferocity" "Rakiata's Flow" "Uhtred's Augury" "Tul's Stillness" "Xoph's Pyre" "Breachlord's Rift" "Vorana's Siege" "Uhtred's Omen" "Olroth's Conviction" "Breachlord's Amalgam" "Atalui's Bloodletting" "Khatal's Rejuvenation" "Esh's Prowess" "Ixchel's Torment" "Atziri's Allure" "Uhtred's Rite" "Arbiter's Ignition" "Amanamu's Tithe" "Catha's Brilliance" "Mórrigan's Insight" "Hayoxi's Fulmination"
+	BaseType == "Garukhan's Resolve" "Uul-Netol's Embrace" "Seraph's Heart" "Atziri's Communion" "Uhtred's Exodus" "Her Declaration" "Dialla's Desire" "Esh's Radiance" "Rigwald's Ferocity" "Rakiata's Flow" "Uhtred's Augury" "Tul's Stillness" "Xoph's Pyre" "Breachlord's Rift" "Vorana's Siege" "Uhtred's Omen" "Olroth's Conviction" "Breachlord's Amalgam" "Atalui's Bloodletting" "Khatal's Rejuvenation" "Esh's Prowess" "Atziri's Allure" "Ixchel's Torment" "Uhtred's Rite" "Arbiter's Ignition" "Mórrigan's Insight" "Amanamu's Tithe" "Catha's Brilliance"
 	SetFontSize 42
 	SetTextColor 255 255 255 255
 	SetBorderColor 255 255 255 255
@@ -2688,7 +2691,7 @@ Show # [CUSTOM][ECONOMY] unknown or unpriced lineage supports - safety net
 
 Hide # [CUSTOM][ECONOMY] lineage supports below the live pickup floor
 	Class == "Skill Gems" "Support Gems"
-	BaseType == "Ahn's Citadel" "Ailith's Chimes" "Arakaali's Lust" "Arbiter's Reach" "Arjun's Medal" "Atziri's Impatience" "Bhatair's Vengeance" "Brutus' Brain" "Cirel's Cultivation" "Daresso's Passion" "Doedre's Undoing" "Dominus' Grasp" "Einhar's Beastrite" "Guatelitzi's Ablation" "Kalisa's Crescendo" "Kaom's Madness" "Kulemak's Dominion" "Kurgal's Leash" "Medved's Felling" "Morgana's Tempest" "Oisín's Oath" "Olroth's Hubris" "Paquate's Pact" "Prototype Seventeen" "Ratha's Assault" "Romira's Requital" "Sione's Temper" "Styrn's Ferocity" "Styrn's Mountain" "Tacati's Ire" "Tangmazu's Thurible" "Tasalio's Rhythm" "Tawhoa's Tending" "Tecrod's Revenge" "Trickster's Shard" "Tul's Avalanche" "Uhtred's Constellation" "Uruk's Smelting" "Varashta's Blessing" "Vilenta's Propulsion" "Vruun's Aftermath" "Vruun's Inevitability" "Xibaqua's Rending" "Zarokh's Refrain" "Zarokh's Revolt" "Zerphi's Infamy"
+	BaseType == "Ahn's Citadel" "Ailith's Chimes" "Arakaali's Lust" "Arbiter's Reach" "Arjun's Medal" "Atziri's Impatience" "Bhatair's Vengeance" "Brutus' Brain" "Cirel's Cultivation" "Daresso's Passion" "Doedre's Undoing" "Dominus' Grasp" "Einhar's Beastrite" "Guatelitzi's Ablation" "Hayoxi's Fulmination" "Kalisa's Crescendo" "Kaom's Madness" "Kulemak's Dominion" "Kurgal's Leash" "Medved's Felling" "Morgana's Tempest" "Oisín's Oath" "Olroth's Hubris" "Paquate's Pact" "Prototype Seventeen" "Ratha's Assault" "Romira's Requital" "Sione's Temper" "Styrn's Ferocity" "Styrn's Mountain" "Tacati's Ire" "Tangmazu's Thurible" "Tasalio's Rhythm" "Tawhoa's Tending" "Tecrod's Revenge" "Trickster's Shard" "Tul's Avalanche" "Uhtred's Constellation" "Uruk's Smelting" "Varashta's Blessing" "Vilenta's Propulsion" "Vruun's Aftermath" "Vruun's Inevitability" "Xibaqua's Rending" "Zarokh's Refrain" "Zarokh's Revolt" "Zerphi's Infamy"
 	SetFontSize 18
 	SetBackgroundColor 20 20 0 0
 
@@ -3779,13 +3782,13 @@ Show # $type->currency->catalysts $tier->restex !utility_unknownitem
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live essence pickup policy - regenerated in full on every run
 #===============================================================================================================
-# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Generated 2026-08-23 13:44 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 344 ex
 # Show floor: 0.1 div with 10+ listings; thin-market exception: 0.25 div with 5+ listings.
 # Current and trailing prices are used, and every known lower-value essence is hidden above the stock tierlist.
 
 Show # [CUSTOM][ECONOMY] essence value floor >= 0.1 div
 	Class == "Stackable Currency"
-	BaseType == "Essence of the Mind" "Essence of Delirium" "Essence of Horror" "Essence of Hysteria" "Essence of the Breach"
+	BaseType == "Essence of Opulence" "Essence of Delirium" "Essence of Horror" "Essence of Hysteria" "Essence of the Breach" "Perfect Essence of Flames" "Perfect Essence of the Infinite"
 	SetFontSize 42
 	SetTextColor 255 255 255 255
 	SetBorderColor 255 255 255 255
@@ -3796,7 +3799,7 @@ Show # [CUSTOM][ECONOMY] essence value floor >= 0.1 div
 
 Hide # [CUSTOM][ECONOMY] essences below the live pickup floor
 	Class == "Stackable Currency"
-	BaseType == "Essence of Abrasion" "Essence of Alacrity" "Essence of Battle" "Essence of Command" "Essence of Electricity" "Essence of Enhancement" "Essence of Flames" "Essence of Grounding" "Essence of Haste" "Essence of Ice" "Essence of Insanity" "Essence of Insulation" "Essence of Opulence" "Essence of Ruin" "Essence of Seeking" "Essence of Sorcery" "Essence of Thawing" "Essence of the Abyss" "Essence of the Body" "Essence of the Infinite" "Greater Essence of Abrasion" "Greater Essence of Alacrity" "Greater Essence of Battle" "Greater Essence of Command" "Greater Essence of Electricity" "Greater Essence of Enhancement" "Greater Essence of Flames" "Greater Essence of Grounding" "Greater Essence of Haste" "Greater Essence of Ice" "Greater Essence of Insulation" "Greater Essence of Opulence" "Greater Essence of Ruin" "Greater Essence of Seeking" "Greater Essence of Sorcery" "Greater Essence of Thawing" "Greater Essence of the Body" "Greater Essence of the Infinite" "Greater Essence of the Mind" "Lesser Essence of Abrasion" "Lesser Essence of Alacrity" "Lesser Essence of Battle" "Lesser Essence of Command" "Lesser Essence of Electricity" "Lesser Essence of Enhancement" "Lesser Essence of Flames" "Lesser Essence of Grounding" "Lesser Essence of Haste" "Lesser Essence of Ice" "Lesser Essence of Insulation" "Lesser Essence of Opulence" "Lesser Essence of Ruin" "Lesser Essence of Seeking" "Lesser Essence of Sorcery" "Lesser Essence of Thawing" "Lesser Essence of the Body" "Lesser Essence of the Infinite" "Lesser Essence of the Mind" "Perfect Essence of Abrasion" "Perfect Essence of Alacrity" "Perfect Essence of Battle" "Perfect Essence of Command" "Perfect Essence of Electricity" "Perfect Essence of Enhancement" "Perfect Essence of Flames" "Perfect Essence of Grounding" "Perfect Essence of Haste" "Perfect Essence of Ice" "Perfect Essence of Insulation" "Perfect Essence of Opulence" "Perfect Essence of Ruin" "Perfect Essence of Seeking" "Perfect Essence of Sorcery" "Perfect Essence of Thawing" "Perfect Essence of the Body" "Perfect Essence of the Infinite" "Perfect Essence of the Mind"
+	BaseType == "Essence of Abrasion" "Essence of Alacrity" "Essence of Battle" "Essence of Command" "Essence of Electricity" "Essence of Enhancement" "Essence of Flames" "Essence of Grounding" "Essence of Haste" "Essence of Ice" "Essence of Insanity" "Essence of Insulation" "Essence of Ruin" "Essence of Seeking" "Essence of Sorcery" "Essence of Thawing" "Essence of the Abyss" "Essence of the Body" "Essence of the Infinite" "Essence of the Mind" "Greater Essence of Abrasion" "Greater Essence of Alacrity" "Greater Essence of Battle" "Greater Essence of Command" "Greater Essence of Electricity" "Greater Essence of Enhancement" "Greater Essence of Flames" "Greater Essence of Grounding" "Greater Essence of Haste" "Greater Essence of Ice" "Greater Essence of Insulation" "Greater Essence of Opulence" "Greater Essence of Ruin" "Greater Essence of Seeking" "Greater Essence of Sorcery" "Greater Essence of Thawing" "Greater Essence of the Body" "Greater Essence of the Infinite" "Greater Essence of the Mind" "Lesser Essence of Abrasion" "Lesser Essence of Alacrity" "Lesser Essence of Battle" "Lesser Essence of Command" "Lesser Essence of Electricity" "Lesser Essence of Enhancement" "Lesser Essence of Flames" "Lesser Essence of Grounding" "Lesser Essence of Haste" "Lesser Essence of Ice" "Lesser Essence of Insulation" "Lesser Essence of Opulence" "Lesser Essence of Ruin" "Lesser Essence of Seeking" "Lesser Essence of Sorcery" "Lesser Essence of Thawing" "Lesser Essence of the Body" "Lesser Essence of the Infinite" "Lesser Essence of the Mind" "Perfect Essence of Abrasion" "Perfect Essence of Alacrity" "Perfect Essence of Battle" "Perfect Essence of Command" "Perfect Essence of Electricity" "Perfect Essence of Enhancement" "Perfect Essence of Grounding" "Perfect Essence of Haste" "Perfect Essence of Ice" "Perfect Essence of Insulation" "Perfect Essence of Opulence" "Perfect Essence of Ruin" "Perfect Essence of Seeking" "Perfect Essence of Sorcery" "Perfect Essence of Thawing" "Perfect Essence of the Body" "Perfect Essence of the Mind"
 	SetFontSize 18
 	SetBackgroundColor 20 20 0 0
 
@@ -3883,6 +3886,12 @@ Show # $type->currency->essence $tier->restex !utility_unknownitem
 #   [2704] Omen (ritual)
 #------------------------------------
 # !! Waypoint c9.currency.omen.all : "Tierlist - Omen (Ritual)" : "Currency"
+
+Hide # [CUSTOM] Low-priority Ritual Omens
+	Class == "Omen"
+	BaseType == "Omen of Answered Prayers" "Omen of Bartering" "Omen of Catalysing Exaltation" "Omen of Dextral Exaltation" "Omen of Sinistral Exaltation" "Omen of Greater Exaltation" "Omen of Reinforcements" "Omen of Resurgence" "Omen of the Ancients" "Omen of the Blessed" "Omen of Refreshment" "Omen of Gambling"
+	SetFontSize 18
+	SetBackgroundColor 20 20 0 0
 
 Show # [CUSTOM] Omen of Light - custom drop sound
 	Class == "Omen"
@@ -4065,7 +4074,7 @@ Show # $type->uniques $tier->sekhemaring !uniques_a
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live unique pickup policy - regenerated in full on every run
 #===============================================================================================================
-# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Generated 2026-08-23 13:44 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 344 ex
 # Plain visible unique bases below 0.5 div are hidden after these exceptions.
 # Bases containing NeverSink PreventHiding outcomes remain visible even when liquid variants are cheap.
 # Unique scepters stay visible because same-class Vaal rerolling can produce valuable scepter outcomes.
@@ -4172,7 +4181,7 @@ Hide # [CUSTOM][ECONOMY] visible unique bases below 0.5 div
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live market overrides - regenerated in full on every run, do not hand-edit
 #===============================================================================================================
-# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Generated 2026-08-23 13:44 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 344 ex
 # Thresholds: S >= 10 div, A >= 2 div, B >= 0.5 div.
 # Confidence: 5+ live listings, or 5+ historical snapshots; thin markets use the lower quartile.
 # Prices are taken on the best unique each base can actually drop; uncertain bases are never hidden.

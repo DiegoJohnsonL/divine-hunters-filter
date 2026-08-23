@@ -84,6 +84,9 @@ NR < 15 && /^#(name|version|realm|errors|hash|filterVersion|filterType|lastUpdat
 	print "#     unknown or unpriced names remain visible."
 	print "# 22) Endgame tier-5 rare/magic gear: all rare drops are hidden; magic drops are hidden except"
 	print "#     Ancestral Tiara and Obliterator Bow as narrow crafting-base safeguards."
+	print "# 23) Ritual reward scanning: 12 known low-priority Ritual Omens are hidden above the whole"
+	print "#     Omen tierlist. The 16 selected Ritual Omens retain stock styling; Abyss-only and"
+	print "#     unknown/future Omens are untouched."
 	next
 }
 
@@ -317,6 +320,15 @@ function soundrule(title, cls, base, style, sound, cont,   n, i, parts) {
 }
 
 /^Show # \$type->currency->omen \$tier->s !apex_stier$/ {
+	# Keep-list policy for the Ritual reward window. Filter syntax has no Ritual-only condition,
+	# so target only the known low-priority Ritual pool by exact name. The selected Ritual Omens,
+	# Abyss-only Omens, and unknown/future Omens continue into their normal stock/custom rules.
+	print "Hide # [CUSTOM] Low-priority Ritual Omens"
+	print "\tClass == \"Omen\""
+	print "\tBaseType == \"Omen of Answered Prayers\" \"Omen of Bartering\" \"Omen of Catalysing Exaltation\" \"Omen of Dextral Exaltation\" \"Omen of Sinistral Exaltation\" \"Omen of Greater Exaltation\" \"Omen of Reinforcements\" \"Omen of Resurgence\" \"Omen of the Ancients\" \"Omen of the Blessed\" \"Omen of Refreshment\" \"Omen of Gambling\""
+	print "\tSetFontSize 18"
+	print "\tSetBackgroundColor 20 20 0 0"
+	print ""
 	soundrule("Omen of Light", "\"Omen\"", "Omen of Light", \
 	          "SetFontSize 45|SetTextColor 255 0 0 255|SetBorderColor 255 0 0 255|SetBackgroundColor 255 255 255 255|PlayEffect Red|MinimapIcon 0 Red Star", \
 	          "HibOmenLight.mp3")

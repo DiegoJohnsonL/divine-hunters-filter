@@ -340,6 +340,7 @@ reproduced in the filter's own header. Summary:
 | 20 | Visible unique bases below the live 0.50-divine floor are hidden; `PreventHiding` bases such as Wide Belt, unique scepters, and special states remain visible |
 | 21 | Lineage Support Gems use live prices: 0.50-divine floor with liquidity/chase safeguards; unknown or unpriced names remain visible |
 | 22 | Endgame Tier-5 rare gear hidden; Tier-5 magic gear hidden except Ancestral Tiara and Obliterator Bow crafting-base safeguards |
+| 23 | Twelve low-priority Ritual Omens are hidden for faster reward scanning; the selected Ritual Omens, Abyss-only Omens, and unknown/future Omens keep their normal rules |
 
 ---
 
