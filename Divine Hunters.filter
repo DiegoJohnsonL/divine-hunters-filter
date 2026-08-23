@@ -15,11 +15,12 @@
 #------------------------------------
 # 1) SUPERSEDED by note 17 - Exalted Orb is now hidden at every stack size.
 # 2) Splinters (Breach/Petition/Runic/Simulacrum): singles hidden, 2+ still shown.
-# 3) UnidentifiedItemTier: endgame gear/jewellery needs tier 5. All >=2/>=3 rules disabled,
-#    all >=4 raised to >=5. Levelling (AreaLevel <= 64) left at stock.
+# 3) UnidentifiedItemTier: endgame gear/jewellery is evaluated at tier 5 only. All >=2/>=3
+#    rules disabled, all >=4 raised to >=5. The endgame pickup policy below hides ground rare/magic
+#    tier-5 gear except two narrow magic crafting-base safeguards. Levelling (AreaLevel <= 64) left at stock.
 # 4) Uniques: multispecial/multispecialhigh untouched - they keep Headhunter (Heavy Belt),
 #    Mageblood (Utility Belt) and Astramentis (Stellar Amulet) visible.
-# 5) Belts: magic/rare only at UnidentifiedItemTier 5. White belts left at STOCK behaviour
+# 5) Belts: endgame magic/rare ground drops are hidden. White belts left at STOCK behaviour
 #    (Heavy Belt + Utility Belt via the chancing rule only). Unique belts untouched.
 # 6) Jewels: STOCK behaviour - rare Emerald/Ruby/Sapphire show, magic+normal hidden.
 # 7) Greater orbs: only Exalted and above. Greater Jeweller's / Augmentation / Transmutation /
@@ -56,6 +57,17 @@
 #     same styling as Omen of Abyssal Echoes, but keeping the stock tier->a alert sound so
 #     it does not share Echoes.mp3. Perfect Chaos Orb alone keeps the white Divine look.
 #     Perfect Jeweller's Orb rides the same rule - also demoted out of the Divine white.
+# 19) Essences: the economy updater inserts a live Runes of Aldur pickup policy above the
+#     stock essence tierlist. Default is 0.10 divine with liquidity guards; lower-value
+#     known essences are hidden so stale NeverSink S/A/B/C labels cannot re-show them.
+# 20) Uniques: the economy updater hides tracked visible bases below the live 0.50-divine
+#     floor, but keeps every unique Sceptre for same-class Vaal rerolling and preserves
+#     special corruption, Vaal, quality and socket states. Bases with NeverSink PreventHiding
+#     outcomes (including Wide Belt) remain visible as ambiguity safeguards.
+# 21) Lineage Support Gems: the economy updater uses live prices with liquidity/chase safeguards;
+#     unknown or unpriced names remain visible.
+# 22) Endgame tier-5 rare/magic gear: all rare drops are hidden; magic drops are hidden except
+#     Ancestral Tiara and Obliterator Bow as narrow crafting-base safeguards.
 #
 #------------------------------------
 # LINKS TO LATEST VERSION AND FILTER EDITOR
@@ -982,27 +994,23 @@ Show # %D7 $type->endgame->normalcraft->economy $tier->group1t2 !itemproperty_be
 #	PlayAlertSound 3 300
 #	PlayEffect Yellow
 #	MinimapIcon 1 Yellow Diamond
+#===============================================================================================================
+# [CUSTOM][ECONOMY] Endgame Tier-5 gear pickup policy - regenerated in full on every run
+#===============================================================================================================
+# Endgame magic/rare belts are hidden; tier-5 rare gear is hidden; only two magic crafting bases remain.
+# This intentionally trades occasional ground-craft upside for a cleaner currency-farming screen.
 
-#===============================================================================================================
-#===============================================================================================================
-# [CUSTOM] Belts - magic and rare only survive at UnidentifiedItemTier 5
-#===============================================================================================================
-# White belts are NOT touched here: they keep stock behaviour (Heavy Belt + Utility Belt show via the
-# chancing rule above, everything else white falls into the normal/magic hide layer). Uniques excluded by Rarity.
-
-Show # [CUSTOM] belts the game flags AlwaysShow - never suppress these
-	AlwaysShow True
+Hide # [CUSTOM][ECONOMY] endgame magic/rare belts - no ground pickup
 	Rarity Magic Rare
 	Class == "Belts"
-	SetFontSize 40
-	SetTextColor 0 240 190 255
-	PlayAlertSound 3 300
-	PlayEffect Blue Temp
+	AreaLevel >= 65
+	SetFontSize 18
+	SetBackgroundColor 20 20 0 0
 
-Show # [CUSTOM] magic/rare belts - tier 5 only
+Show # [CUSTOM][ECONOMY] retained Tier-5 magic crafting bases
 	UnidentifiedItemTier >= 5
-	Rarity Magic Rare
-	Class == "Belts"
+	Rarity Magic
+	BaseType == "Ancestral Tiara" "Obliterator Bow"
 	AreaLevel >= 65
 	SetFontSize 42
 	SetTextColor 0 240 190 255
@@ -1012,14 +1020,23 @@ Show # [CUSTOM] magic/rare belts - tier 5 only
 	PlayEffect Blue
 	MinimapIcon 0 Blue Diamond
 
-Hide # [CUSTOM] every other magic/rare belt (tier 1-4 and untiered)
-	Rarity Magic Rare
-	Class == "Belts"
+Hide # [CUSTOM][ECONOMY] all other endgame Tier-5 rare items
+	UnidentifiedItemTier >= 5
+	Rarity Rare
 	AreaLevel >= 65
 	SetFontSize 18
 	SetBackgroundColor 20 20 0 0
 
+Hide # [CUSTOM][ECONOMY] all other endgame Tier-5 magic items
+	UnidentifiedItemTier >= 5
+	Rarity Magic
+	AreaLevel >= 65
+	SetFontSize 18
+	SetBackgroundColor 20 20 0 0
+
+# [CUSTOM][ECONOMY] END endgame Tier-5 gear pickup policy
 #===============================================================================================================
+
 # [[0800]] High Unidentified Mod Tier
 #===============================================================================================================
 # !! Waypoint c3.exotic.state.hightier : "Rare items with Mod Tier" : "ModTierRare"
@@ -2640,6 +2657,43 @@ Show # $type->relics->generic $tier->any !exotics_dtier
 # [[2200]] Gems and Uncut Gems
 #===============================================================================================================
 # !! Waypoint c8.gems.uncut : "Gems - Uncut" : "Gems"
+#===============================================================================================================
+# [CUSTOM][ECONOMY] Live lineage support pickup policy - regenerated in full on every run
+#===============================================================================================================
+# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Normal floor: 0.5 div with 5+ listings; thin floor: 1 div with 3+ listings; chase floor: 2 div.
+# Unknown or unpriced lineage supports remain visible so new content and thin markets cannot be hidden accidentally.
+
+Show # [CUSTOM][ECONOMY] lineage support value floor >= 0.5 div
+	Class == "Skill Gems" "Support Gems"
+	BaseType == "Garukhan's Resolve" "Uul-Netol's Embrace" "Seraph's Heart" "Atziri's Communion" "Uhtred's Exodus" "Her Declaration" "Dialla's Desire" "Esh's Radiance" "Rigwald's Ferocity" "Rakiata's Flow" "Uhtred's Augury" "Tul's Stillness" "Xoph's Pyre" "Breachlord's Rift" "Vorana's Siege" "Uhtred's Omen" "Olroth's Conviction" "Breachlord's Amalgam" "Atalui's Bloodletting" "Khatal's Rejuvenation" "Esh's Prowess" "Ixchel's Torment" "Atziri's Allure" "Uhtred's Rite" "Arbiter's Ignition" "Amanamu's Tithe" "Catha's Brilliance" "Mórrigan's Insight" "Hayoxi's Fulmination"
+	SetFontSize 42
+	SetTextColor 255 255 255 255
+	SetBorderColor 255 255 255 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 2 300
+	PlayEffect Yellow
+	MinimapIcon 1 Yellow Circle
+
+Show # [CUSTOM][ECONOMY] unknown or unpriced lineage supports - safety net
+	Class == "Skill Gems" "Support Gems"
+	BaseType == "Styrn's Anthem"
+	SetFontSize 42
+	SetTextColor 20 240 240 255
+	SetBorderColor 20 240 240 255
+	SetBackgroundColor 6 0 60 255
+	PlayAlertSound 3 300
+	PlayEffect Cyan
+	MinimapIcon 1 Cyan Triangle
+
+Hide # [CUSTOM][ECONOMY] lineage supports below the live pickup floor
+	Class == "Skill Gems" "Support Gems"
+	BaseType == "Ahn's Citadel" "Ailith's Chimes" "Arakaali's Lust" "Arbiter's Reach" "Arjun's Medal" "Atziri's Impatience" "Bhatair's Vengeance" "Brutus' Brain" "Cirel's Cultivation" "Daresso's Passion" "Doedre's Undoing" "Dominus' Grasp" "Einhar's Beastrite" "Guatelitzi's Ablation" "Kalisa's Crescendo" "Kaom's Madness" "Kulemak's Dominion" "Kurgal's Leash" "Medved's Felling" "Morgana's Tempest" "Oisín's Oath" "Olroth's Hubris" "Paquate's Pact" "Prototype Seventeen" "Ratha's Assault" "Romira's Requital" "Sione's Temper" "Styrn's Ferocity" "Styrn's Mountain" "Tacati's Ire" "Tangmazu's Thurible" "Tasalio's Rhythm" "Tawhoa's Tending" "Tecrod's Revenge" "Trickster's Shard" "Tul's Avalanche" "Uhtred's Constellation" "Uruk's Smelting" "Varashta's Blessing" "Vilenta's Propulsion" "Vruun's Aftermath" "Vruun's Inevitability" "Xibaqua's Rending" "Zarokh's Refrain" "Zarokh's Revolt" "Zerphi's Infamy"
+	SetFontSize 18
+	SetBackgroundColor 20 20 0 0
+
+# [CUSTOM][ECONOMY] END live lineage support pickup policy
+#===============================================================================================================
 
 Show # $type->gems->lineage $tier->s !apex_stier
 	Class == "Skill Gems" "Support Gems"
@@ -3722,6 +3776,33 @@ Show # $type->currency->catalysts $tier->restex !utility_unknownitem
 #------------------------------------
 # !! Waypoint c9.currency.essences.all : "Tierlist - Essences" : "Currency"
 
+#===============================================================================================================
+# [CUSTOM][ECONOMY] Live essence pickup policy - regenerated in full on every run
+#===============================================================================================================
+# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Show floor: 0.1 div with 10+ listings; thin-market exception: 0.25 div with 5+ listings.
+# Current and trailing prices are used, and every known lower-value essence is hidden above the stock tierlist.
+
+Show # [CUSTOM][ECONOMY] essence value floor >= 0.1 div
+	Class == "Stackable Currency"
+	BaseType == "Essence of the Mind" "Essence of Delirium" "Essence of Horror" "Essence of Hysteria" "Essence of the Breach"
+	SetFontSize 42
+	SetTextColor 255 255 255 255
+	SetBorderColor 255 255 255 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 2 300
+	PlayEffect Yellow
+	MinimapIcon 1 Yellow Circle
+
+Hide # [CUSTOM][ECONOMY] essences below the live pickup floor
+	Class == "Stackable Currency"
+	BaseType == "Essence of Abrasion" "Essence of Alacrity" "Essence of Battle" "Essence of Command" "Essence of Electricity" "Essence of Enhancement" "Essence of Flames" "Essence of Grounding" "Essence of Haste" "Essence of Ice" "Essence of Insanity" "Essence of Insulation" "Essence of Opulence" "Essence of Ruin" "Essence of Seeking" "Essence of Sorcery" "Essence of Thawing" "Essence of the Abyss" "Essence of the Body" "Essence of the Infinite" "Greater Essence of Abrasion" "Greater Essence of Alacrity" "Greater Essence of Battle" "Greater Essence of Command" "Greater Essence of Electricity" "Greater Essence of Enhancement" "Greater Essence of Flames" "Greater Essence of Grounding" "Greater Essence of Haste" "Greater Essence of Ice" "Greater Essence of Insulation" "Greater Essence of Opulence" "Greater Essence of Ruin" "Greater Essence of Seeking" "Greater Essence of Sorcery" "Greater Essence of Thawing" "Greater Essence of the Body" "Greater Essence of the Infinite" "Greater Essence of the Mind" "Lesser Essence of Abrasion" "Lesser Essence of Alacrity" "Lesser Essence of Battle" "Lesser Essence of Command" "Lesser Essence of Electricity" "Lesser Essence of Enhancement" "Lesser Essence of Flames" "Lesser Essence of Grounding" "Lesser Essence of Haste" "Lesser Essence of Ice" "Lesser Essence of Insulation" "Lesser Essence of Opulence" "Lesser Essence of Ruin" "Lesser Essence of Seeking" "Lesser Essence of Sorcery" "Lesser Essence of Thawing" "Lesser Essence of the Body" "Lesser Essence of the Infinite" "Lesser Essence of the Mind" "Perfect Essence of Abrasion" "Perfect Essence of Alacrity" "Perfect Essence of Battle" "Perfect Essence of Command" "Perfect Essence of Electricity" "Perfect Essence of Enhancement" "Perfect Essence of Flames" "Perfect Essence of Grounding" "Perfect Essence of Haste" "Perfect Essence of Ice" "Perfect Essence of Insulation" "Perfect Essence of Opulence" "Perfect Essence of Ruin" "Perfect Essence of Seeking" "Perfect Essence of Sorcery" "Perfect Essence of Thawing" "Perfect Essence of the Body" "Perfect Essence of the Infinite" "Perfect Essence of the Mind"
+	SetFontSize 18
+	SetBackgroundColor 20 20 0 0
+
+# [CUSTOM][ECONOMY] END live essence pickup policy
+#===============================================================================================================
+
 Show # $type->currency->essence $tier->s !apex_stier
 	Class == "Stackable Currency"
 	BaseType == "Essence of Horror"
@@ -3982,14 +4063,122 @@ Show # $type->uniques $tier->sekhemaring !uniques_a
 #   [2902] Tier 1 and 2 uniques
 #------------------------------------
 #===============================================================================================================
+# [CUSTOM][ECONOMY] Live unique pickup policy - regenerated in full on every run
+#===============================================================================================================
+# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Plain visible unique bases below 0.5 div are hidden after these exceptions.
+# Bases containing NeverSink PreventHiding outcomes remain visible even when liquid variants are cheap.
+# Unique scepters stay visible because same-class Vaal rerolling can produce valuable scepter outcomes.
+# Special corruption, Vaal, quality and socket states stay visible for identification/crafting value.
+
+Show # [CUSTOM][ECONOMY] all unique scepters - same-class reroll exception
+	Class == "Sceptres"
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Show # [CUSTOM][ECONOMY] AlwaysShow uniques
+	AlwaysShow True
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Show # [CUSTOM][ECONOMY] double-corrupted uniques
+	TwiceCorrupted True
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Show # [CUSTOM][ECONOMY] uniques with Vaal modifiers
+	HasVaalUniqueMod True
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Show # [CUSTOM][ECONOMY] Vaal uniques
+	IsVaalUnique True
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Show # [CUSTOM][ECONOMY] corrupted enchanted uniques
+	AnyEnchantment True
+	Corrupted True
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Show # [CUSTOM][ECONOMY] over-quality uniques
+	Quality >= 21
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Show # [CUSTOM][ECONOMY] socket-rich uniques
+	Sockets >= 2
+	Rarity Unique
+	SetFontSize 42
+	SetTextColor 0 0 0 255
+	SetBorderColor 0 240 190 255
+	SetBackgroundColor 188 96 37 255
+	PlayAlertSound 3 300
+	PlayEffect Purple
+	MinimapIcon 0 Purple Star
+
+Hide # [CUSTOM][ECONOMY] visible unique bases below 0.5 div
+	Rarity Unique
+	BaseType == "Azure Amulet" "Omen Crest Shield" "Execratus Hammer" "Silk Robe" "Ultimate Life Flask" "Death Mask" "Broadhead Quiver" "Furtive Wraps" "Shaman Mantle" "Tattered Robe" "Vermeil Circlet" "Wrapped Sandals" "Barbed Spear" "Champion Cuirass" "Composite Bow" "Covert Hood" "Helix Spear" "Lattice Sandals" "Shortbow" "Spired Greathelm" "Stocky Mitts" "Trarthan Cannon" "Winged Spear" "Topaz Ring" "Transcendent Mana Flask" "Ancient Leggings" "Emerald Ring" "Iron Crown" "Lazuli Ring" "Morning Star" "Amethyst Ring" "Brimmed Helm" "Stellar Amulet" "Two-Stone Ring" "Array Buckler" "Pearl Ring"
+	SetFontSize 18
+	SetBackgroundColor 20 20 0 0
+
+# [CUSTOM][ECONOMY] END live unique pickup policy
+#===============================================================================================================
+
+#===============================================================================================================
 # [CUSTOM][ECONOMY] Live market overrides - regenerated in full on every run, do not hand-edit
 #===============================================================================================================
-# Generated 2026-08-22 16:17 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 351 ex
-# Thresholds: S >= 10 div, A >= 2 div, B >= 0.5 div. Minimum 20 live listings.
-# Prices are the median of the trailing price log, taken on the best unique each base can actually drop.
+# Generated 2026-08-23 12:51 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 345 ex
+# Thresholds: S >= 10 div, A >= 2 div, B >= 0.5 div.
+# Confidence: 5+ live listings, or 5+ historical snapshots; thin markets use the lower quartile.
+# Prices are taken on the best unique each base can actually drop; uncertain bases are never hidden.
 # Uniques NeverSink flags NonWorldDrop are excluded (62 of them) - they never drop from monsters,
 # so their price says nothing about whether the base is worth showing.
-# Nothing here hides an item: promotions raise visibility, the quiet rule only removes the apex siren.
+# This market block only promotes/softens; the separate unique/essence policies handle value-floor hides.
 
 Show # [CUSTOM][ECONOMY] S - best droppable unique >= 10 div
 	Rarity Unique
@@ -4002,6 +4191,8 @@ Show # [CUSTOM][ECONOMY] S - best droppable unique >= 10 div
 	PlayEffect Red
 	MinimapIcon 0 Red Star
 
+#===============================================================================================================
+# [CUSTOM][ECONOMY] END live market overrides
 #===============================================================================================================
 
 # !! Waypoint c11.uniques.t1 : "Tierlist - Uniques - T1, T2" : "Uniques"

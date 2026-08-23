@@ -1,7 +1,7 @@
 # Divine Hunters Filter — PoE2 Loot Filter
 
 A customised build of **NeverSink's 6-UBER-PLUS-STRICT** filter for Path of Exile 2, with
-personal edits layered on top and a nightly rebuild that re-tiers uniques against live
+personal edits layered on top and a rebuild command that re-tiers uniques against live
 market prices from [poe2scout](https://poe2scout.com).
 
 Everything lives in `%USERPROFILE%\Documents\My Games\Path of Exile 2\`.
@@ -25,19 +25,24 @@ Choose one option:
 3. Click **Next**, choose your PoE2 folder, leave Ritual filtering checked if wanted, and click
    **Install**.
 
-The EXE already contains the filter and all five custom sounds. No Git, PowerShell, or command
-prompt is required. `Install-DivineHuntersFilter.cmd` remains available as a script fallback.
+The small bootstrapper securely downloads the current filter and five sounds from the rolling
+GitHub filter channel, verifies every SHA-256 digest, and installs them. An internet connection
+is required, but no Git, PowerShell, or command prompt is needed.
+`Install-DivineHuntersFilter.cmd` remains available as a script fallback.
 
 ## Automatic updates
 
 The one-file installer can optionally register a per-user Windows task named
-`Divine Hunters Filter Update`. Once enabled, it checks the latest GitHub Release once per day,
-downloads a newer `DivineHuntersSetup.exe` when available, verifies GitHub's SHA-256 asset
-digest, and applies the filter and sounds silently. It skips the check while Path of Exile 2 is
-running and preserves the Ritual setting.
+`Divine Hunters Filter Update`. Once enabled, it checks the fixed `filter-latest` GitHub
+prerelease once per day, compares the installed files with GitHub's SHA-256 asset digests, and
+downloads only changed filter/sound assets. It skips the check while Path of Exile 2 is running,
+keeps one filter backup, and preserves the Ritual setting.
 
-The helper and its log live under `%LOCALAPPDATA%\DivineHuntersFilter`, not in the game folder.
-The updater never runs `git pull` and never changes the game's Ritual setting during an update.
+The helper, installed filter digest, and log live under `%LOCALAPPDATA%\DivineHuntersFilter`,
+not in the game folder. The updater never runs `git pull`, never downloads another installer,
+and never changes the game's Ritual setting during an update. It does **not** run
+`_filter-economy-update.ps1`; live poe2scout re-tiering is refreshed when that script is run and
+the resulting generated filter is pushed to `main`.
 To disable it later, rerun the installer with the checkbox cleared or run:
 
 ```powershell
@@ -85,10 +90,10 @@ Then:
    in `_filter-build-script.awk`.
 3. Remember that the first matching rule wins. Put an override above the stock rule it must beat;
    currency overrides that must survive economy re-tiering belong above `$tier->s`.
-4. The public installer is `DivineHuntersSetup.exe`, built from
-   `DivineHuntersSetup.cs`. Rebuild it with `Build-DivineHuntersSetup.ps1` whenever
-   the filter, included sounds, or installer/updater code changes. Bump the version in
-   `DivineHuntersVersion.cs` before publishing a new release.
+4. The public installer is a stable bootstrapper built from `DivineHuntersSetup.cs`,
+   `DivineHuntersFilterChannel.cs`, and `DivineHuntersUpdater.cs`. Rebuild and version it only
+   when installer/updater code changes. Filter and sound changes are published separately by
+   `.github/workflows/publish-filter-channel.yml` and do not require another EXE.
 5. Dry-run and validate the filter build:
 
    ```powershell
@@ -103,6 +108,20 @@ Then:
 
 7. Verify the generated rule and its position, then tell the user to reload or reselect the filter
    in-game. Keep generated output, cache files, and user-owned unrelated changes intact.
+
+### Publishing model
+
+- Initial rollout order matters: push these changes and wait for the rolling-channel workflow to
+  create `filter-latest`; only then publish the normal `v1.4.0` release with the rebuilt
+  `DivineHuntersSetup.exe` asset.
+- `v1.4.0` is the one-time migration installer release. It moves existing scheduled clients from
+  executable downloads to the rolling content channel.
+- A push to `main` that changes `Divine Hunters.filter` or one of the five sounds validates and
+  replaces those assets on the fixed `filter-latest` prerelease.
+- Existing `v1.4.0+` scheduled clients compare per-file SHA-256 digests and download only changed
+  assets. No executable rebuild or new executable release version is needed.
+- Rebuild `DivineHuntersSetup.exe` only when the bootstrapper/updater code itself changes. Run
+  `Test-DivineHuntersSetup.ps1` before publishing such a migration build.
 
 ---
 
@@ -223,15 +242,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "_filter-economy-update.ps1"
 |---|---|---|
 | `-DryRun` | off | Build + validate, install nothing. Output lands in `_filter-cache\staged.filter`. |
 | `-League` | auto | Override league detection. |
-| `-MinListings` | `20` | Ignore uniques with fewer live listings — guards against troll prices. |
+| `-UniqueMinListings` | `5` | Live-liquidity fallback for uniques (`-MinListings` remains a compatibility alias). |
+| `-UniqueHistoryMinPoints` | `5` | Minimum historical snapshots for pricing thin or zero-listing uniques. Thin markets use the conservative lower quartile; bases with insufficient evidence are never hidden. |
 | `-DivS` / `-DivA` / `-DivB` | `10` / `2` / `0.5` | Divine thresholds for promoting a base. |
 | `-QuietFloor` | `0.25` | Apex bases below this get the quiet treatment instead of a siren. |
 | `-NoQuiet` | off | Disable that softening. |
+| `-EssenceFloor` | `0.10` | Minimum divine value for a normal essence pickup. |
+| `-EssenceMinListings` | `10` | Minimum current listings for the normal essence floor. |
+| `-EssenceThinFloor` | `0.25` | Minimum value for a thinner essence market. |
+| `-EssenceThinMinListings` | `5` | Minimum listings for the thinner-market exception. |
+| `-LineageFloor` | `0.50` | Normal lineage-support pickup floor. |
+| `-LineageMinListings` | `5` | Minimum listings at the normal lineage floor. |
+| `-LineageThinFloor` | `1.00` | Thin-market lineage-support floor. |
+| `-LineageThinMinListings` | `3` | Minimum listings at the thin-market lineage floor. |
+| `-LineageChaseFloor` | `2.00` | Always retain a priced lineage support at or above this value. |
+| `-UniqueFloor` | `0.50` | Hide tracked visible unique bases below this value; `PreventHiding` bases, unique scepters, and special states remain visible. |
 | `-BaseFilter` | auto | Force a specific base instead of the freshest cached one. |
 | `-Output` | installed path | Write somewhere else. |
 
 The script refuses to install if its structural checks fail (orphaned directives, comments
 inside a rule block, empty `BaseType` lists, or mojibake from a codepage mishap).
+
+Unique history from poe2scout is a sequence of market-listing snapshots, not confirmed sales.
+The updater therefore uses a historical median for liquid uniques and the lower quartile after
+at least five snapshots for thin or zero-listing uniques. If neither history nor live liquidity
+is sufficient, the base is treated as uncertain and is never added to the generated hide rule.
 
 ---
 
@@ -284,9 +319,9 @@ reproduced in the filter's own header. Summary:
 |---|---|
 | 1 | *Superseded by 17.* |
 | 2 | Splinters (Breach/Petition/Runic/Simulacrum): singles hidden, 2+ shown |
-| 3 | `UnidentifiedItemTier`: endgame gear/jewellery needs tier 5; levelling left at stock |
+| 3 | `UnidentifiedItemTier`: endgame gear/jewellery is evaluated at tier 5; levelling left at stock |
 | 4 | Uniques: multispecial untouched — Headhunter, Mageblood, Astramentis stay visible |
-| 5 | Belts: magic/rare only at tier 5; white belts stock |
+| 5 | Endgame magic/rare belts hidden; white belts stock |
 | 6 | Jewels: stock — rare Emerald/Ruby/Sapphire show |
 | 7 | Greater orbs: Jeweller's / Augmentation / Transmutation / Regal hidden |
 | 8 | Uncut Support Gems hidden in maps |
@@ -300,6 +335,10 @@ reproduced in the filter's own header. Summary:
 | 16 | Quality currency (Gemcutter's Prism, Arcanist's Etcher, Glassblower's Bauble) hidden at AreaLevel ≥ 65 |
 | 17 | Exalted Orb + Greater Exalted hidden at any stack; Vaal Orb only in stacks of 2+; Perfect Exalted untouched |
 | 18 | Greater Chaos Orb + Perfect Jeweller's Orb demoted from the white Divine look to the Abyssal Echoes styling; Perfect Chaos keeps Divine |
+| 19 | Essences use live Runes of Aldur prices: normal floor 0.10 divine, thin-market exception 0.25 divine; known lower-value essences are hidden |
+| 20 | Visible unique bases below the live 0.50-divine floor are hidden; `PreventHiding` bases such as Wide Belt, unique scepters, and special states remain visible |
+| 21 | Lineage Support Gems use live prices: 0.50-divine floor with liquidity/chase safeguards; unknown or unpriced names remain visible |
+| 22 | Endgame Tier-5 rare gear hidden; Tier-5 magic gear hidden except Ancestral Tiara and Obliterator Bow crafting-base safeguards |
 
 ---
 
@@ -312,11 +351,14 @@ reproduced in the filter's own header. Summary:
 | `Divine Hunters.filter.before-divinehunters-*.bak` | Installer restore point; only the newest is retained |
 | `_filter-build-script.awk` | **Source of truth** for personal customisations |
 | `_filter-economy-update.ps1` | Build + economy pipeline |
-| `DivineHuntersSetup.exe` | One-file Windows installer; contains the filter and custom sounds |
-| `DivineHuntersSetup.cs` | Source for the Windows installer |
-| `DivineHuntersUpdater.cs` | Silent GitHub Release updater used by the daily task |
+| `DivineHuntersSetup.exe` | Small Windows bootstrapper; downloads current channel assets |
+| `DivineHuntersSetup.cs` | Bootstrapper UI, Ritual toggle, and task registration |
+| `DivineHuntersFilterChannel.cs` | Shared download, digest validation, backup, and atomic-install logic |
+| `DivineHuntersUpdater.cs` | Silent rolling-channel updater used by the daily task |
 | `DivineHuntersVersion.cs` | Release version embedded in the installer and updater |
-| `Build-DivineHuntersSetup.ps1` | Rebuilds the one-file installer EXE |
+| `Build-DivineHuntersSetup.ps1` | Rebuilds the bootstrapper only when its code changes |
+| `Test-DivineHuntersSetup.ps1` | Isolated installer/updater integration and rollback test |
+| `.github/workflows/publish-filter-channel.yml` | Publishes validated filter/sound assets after pushes to `main` |
 | `OrbOfAnnulment-audio-process.md` | Repeatable FFmpeg recipe for voice + ding alerts |
 | `Install-DivineHuntersFilter.cmd` | Script-based installer fallback |
 | `_filter-economy-update.log` | Run history |

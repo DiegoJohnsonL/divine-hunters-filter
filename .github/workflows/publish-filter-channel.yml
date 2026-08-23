@@ -1,0 +1,85 @@
+name: Publish rolling filter channel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Divine Hunters.filter"
+      - "hibdivine.mp3"
+      - "HibOmenLight.mp3"
+      - "Echoes.mp3"
+      - "OmenOfTheLiege.mp3"
+      - "OrbOfAnnulment.mp3"
+      - ".github/workflows/publish-filter-channel.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: divine-hunters-filter-channel
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the validated source
+        uses: actions/checkout@v4
+
+      - name: Validate channel assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          assets=(
+            "Divine Hunters.filter"
+            "hibdivine.mp3"
+            "HibOmenLight.mp3"
+            "Echoes.mp3"
+            "OmenOfTheLiege.mp3"
+            "OrbOfAnnulment.mp3"
+          )
+          for asset in "${assets[@]}"; do
+            test -s "$asset"
+          done
+          test "$(wc -c < "Divine Hunters.filter")" -ge 100000
+          grep -Fq "# CUSTOMIZED COPY - built on stock 6-UBER-PLUS-STRICT." "Divine Hunters.filter"
+          grep -Fq "# [CUSTOM][ECONOMY] Live lineage support pickup policy" "Divine Hunters.filter"
+          grep -Fq "# [CUSTOM][ECONOMY] Live essence pickup policy" "Divine Hunters.filter"
+          grep -Fq "# [CUSTOM][ECONOMY] Live unique pickup policy" "Divine Hunters.filter"
+          grep -Fq "Hide # [CUSTOM][ECONOMY] visible unique bases below" "Divine Hunters.filter"
+          sha256sum "${assets[@]}"
+
+      - name: Create rolling prerelease if needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view filter-latest >/dev/null 2>&1; then
+            gh release create filter-latest \
+              --prerelease \
+              --target "$GITHUB_SHA" \
+              --title "Divine Hunters rolling filter channel" \
+              --notes "Machine-managed filter assets. Installers and scheduled updaters consume this prerelease by tag; executable releases remain separate."
+          fi
+
+      - name: Publish verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Sounds go first and the filter last. An updater that races publication
+          # either sees a fully valid old/new combination or fails its digest check
+          # and retries on its next daily run.
+          cp "Divine Hunters.filter" DivineHunters.filter
+          gh release upload filter-latest \
+            "hibdivine.mp3" \
+            "HibOmenLight.mp3" \
+            "Echoes.mp3" \
+            "OmenOfTheLiege.mp3" \
+            "OrbOfAnnulment.mp3" \
+            "DivineHunters.filter" \
+            --clobber

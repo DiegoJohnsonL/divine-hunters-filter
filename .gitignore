@@ -32,9 +32,16 @@
 !Install-DivineHuntersFilter.cmd
 !DivineHuntersSetup.cs
 !DivineHuntersSetup.exe
+!DivineHuntersFilterChannel.cs
 !DivineHuntersUpdater.cs
 !DivineHuntersVersion.cs
 !Build-DivineHuntersSetup.ps1
+!Test-DivineHuntersSetup.ps1
+
+# Rolling filter/sound publication channel
+!.github/
+!.github/workflows/
+!.github/workflows/publish-filter-channel.yml
 
 # Explicitly excluded even though they sit beside the tracked files:
 #   *.bak, *.bak-*            previous builds

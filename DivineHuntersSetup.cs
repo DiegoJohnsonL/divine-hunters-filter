@@ -12,25 +12,14 @@ using System.Windows.Forms;
 internal sealed class InstallResult
 {
     public string Target { get; set; }
+    public string FilterMessage { get; set; }
     public string RitualMessage { get; set; }
 }
 
 internal static class InstallerCore
 {
-    private const string FilterResource = "DivineHuntersFilter";
     private const string UpdaterResource = "DivineHuntersUpdater";
     private const string UpdateTaskName = "Divine Hunters Filter Update";
-    private const string LegacyFilterFileName = "FinancialAdvisor Filter.filter";
-    private const int MaxFilterBackups = 1;
-
-    private static readonly string[] AudioResources =
-    {
-        "hibdivine.mp3",
-        "HibOmenLight.mp3",
-        "Echoes.mp3",
-        "OmenOfTheLiege.mp3",
-        "OrbOfAnnulment.mp3"
-    };
 
     public static InstallResult Install(string targetFolder, bool enableRitual, bool recordVersion = true)
     {
@@ -41,37 +30,22 @@ internal static class InstallerCore
             throw new InvalidOperationException("Path of Exile 2 is running. Close the game completely, then try again.");
 
         Directory.CreateDirectory(targetFolder);
-
-        string filterPath = Path.Combine(targetFolder, "Divine Hunters.filter");
-        string legacyFilterPath = Path.Combine(targetFolder, LegacyFilterFileName);
-        string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        if (File.Exists(filterPath))
-        {
-            File.Copy(filterPath, filterPath + ".before-divinehunters-" + stamp + ".bak", true);
-            PruneFilterBackups(targetFolder, filterPath);
-        }
-        else if (File.Exists(legacyFilterPath))
-        {
-            File.Copy(legacyFilterPath, filterPath + ".before-divinehunters-" + stamp + ".bak", true);
-            PruneFilterBackups(targetFolder, filterPath);
-        }
-
-        CopyResource(FilterResource, filterPath);
-        if (File.Exists(legacyFilterPath))
-            File.Delete(legacyFilterPath);
-        foreach (string audioResource in AudioResources)
-            CopyResource(audioResource, Path.Combine(targetFolder, audioResource));
+        FilterChannelResult channel = FilterChannelClient.InstallLatest(targetFolder, null);
+        string filterMessage = channel.Changed
+            ? "Downloaded and installed the current GitHub filter channel (" + channel.ChangedFiles + " file(s))."
+            : "The installed filter and sounds already match the current GitHub filter channel.";
 
         string ritualMessage = enableRitual
             ? EnableRitualFilter(Path.Combine(targetFolder, "poe2_production_Config.ini"))
             : "Ritual filtering was left unchanged.";
 
         if (recordVersion)
-            WriteInstalledVersion();
+            RecordInstalledVersion();
 
         return new InstallResult
         {
             Target = targetFolder,
+            FilterMessage = filterMessage,
             RitualMessage = ritualMessage
         };
     }
@@ -88,7 +62,7 @@ internal static class InstallerCore
         }
 
         string updaterFolder = GetUpdaterFolder();
-        string updaterPath = Path.Combine(updaterFolder, "DivineHuntersUpdater.exe");
+        string updaterPath = Path.Combine(updaterFolder, "DivineHuntersUpdater-" + BuildInfo.Version + ".exe");
         Directory.CreateDirectory(updaterFolder);
         CopyResource(UpdaterResource, updaterPath);
 
@@ -101,7 +75,19 @@ internal static class InstallerCore
         if (exitCode != 0)
             return "Automatic updates could not be enabled; the filter itself was installed successfully.";
 
-        return "Automatic updates are enabled; the updater checks GitHub daily.";
+        PruneOldUpdaters(updaterFolder, updaterPath);
+        return "Automatic updates are enabled; the updater checks the rolling GitHub filter channel daily.";
+    }
+
+    public static string RefreshAutoUpdateIfEnabled(string targetFolder)
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("DIVINEHUNTERS_SKIP_AUTOUPDATE"), "1", StringComparison.Ordinal))
+            return "Automatic updates were skipped for this test run.";
+
+        if (RunScheduledTaskCommand("/Query /TN " + QuoteCommandArgument(UpdateTaskName)) != 0)
+            return "Automatic updates remain disabled.";
+
+        return ConfigureAutoUpdate(targetFolder, true);
     }
 
     private static string GetUpdaterFolder()
@@ -115,44 +101,28 @@ internal static class InstallerCore
             "DivineHuntersFilter");
     }
 
-    private static void WriteInstalledVersion()
+    public static void RecordInstalledVersion()
     {
         string updaterFolder = GetUpdaterFolder();
         Directory.CreateDirectory(updaterFolder);
         File.WriteAllText(Path.Combine(updaterFolder, "installed-version.txt"), BuildInfo.Version, Encoding.UTF8);
     }
 
-    private static void PruneFilterBackups(string targetFolder, string filterPath)
+    private static void PruneOldUpdaters(string updaterFolder, string currentUpdater)
     {
-        string pattern = Path.GetFileName(filterPath) + ".before-divinehunters-*.bak";
-        FileInfo[] backups;
         try
         {
-            backups = new DirectoryInfo(targetFolder).GetFiles(pattern);
+            foreach (string path in Directory.GetFiles(updaterFolder, "DivineHuntersUpdater*.exe"))
+            {
+                if (string.Equals(path, currentUpdater, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                try { File.Delete(path); }
+                catch { }
+            }
         }
         catch
         {
-            return;
-        }
-
-        Array.Sort(backups, delegate(FileInfo left, FileInfo right)
-        {
-            int compare = right.LastWriteTimeUtc.CompareTo(left.LastWriteTimeUtc);
-            if (compare != 0)
-                return compare;
-            return StringComparer.OrdinalIgnoreCase.Compare(right.Name, left.Name);
-        });
-
-        for (int index = MaxFilterBackups; index < backups.Length; index++)
-        {
-            try
-            {
-                backups[index].Delete();
-            }
-            catch
-            {
-                // A locked or inaccessible old backup should not block installation.
-            }
+            // A running migration updater can stay behind harmlessly.
         }
     }
 
@@ -187,6 +157,9 @@ internal static class InstallerCore
 
     private static bool IsPathOfExileRunning()
     {
+        if (string.Equals(Environment.GetEnvironmentVariable("DIVINEHUNTERS_SKIP_GAME_CHECK"), "1", StringComparison.Ordinal))
+            return false;
+
         foreach (Process process in Process.GetProcesses())
         {
             try
@@ -377,9 +350,9 @@ internal sealed class InstallerForm : Form
         Panel welcome = NewPage();
         welcome.Controls.Add(MakeLabel("WELCOME, EXILE", 26, 16, 630, 32, 18, true));
         welcome.Controls.Add(MakeLabel(
-            "This wizard installs the Divine Hunters loot filter and five custom drop sounds into your Path of Exile 2 folder.\r\n\r\nIt can also enable the filter inside Ritual rewards. Close the game before continuing.",
+            "This wizard securely downloads the current Divine Hunters filter and five custom drop sounds from GitHub.\r\n\r\nIt can also enable the filter inside Ritual rewards. Close the game before continuing.",
             28, 62, 630, 90, 12, false));
-        welcome.Controls.Add(MakeInsetLabel("Filter + 5 custom sounds + optional Ritual setting", 28, 168, 630, 34));
+        welcome.Controls.Add(MakeInsetLabel("Always-current filter + 5 sounds + optional Ritual setting", 28, 168, 630, 34));
         autoUpdateCheck = new CheckBox
         {
             Text = "Check for filter updates daily",
@@ -546,7 +519,7 @@ internal sealed class InstallerForm : Form
                 : autoUpdateCheck.Checked ? "Daily check" : "Disabled";
             summaryLabel.Text =
                 action + " to:\r\n" + folderBox.Text.Trim() +
-                "\r\n\r\nFilter: Divine Hunters.filter\r\nCustom sounds: 5 included\r\nRitual filtering: " + ritual +
+                "\r\n\r\nFilter: download current GitHub channel\r\nCustom sounds: verify/download 5\r\nRitual filtering: " + ritual +
                 "\r\nAutomatic updates: " + updates;
         }
     }
@@ -648,11 +621,11 @@ internal sealed class InstallerForm : Form
             bool updateMode = IsUpdateMode();
             InstallResult result = InstallerCore.Install(folderBox.Text.Trim(), updateMode ? false : ritualCheck.Checked);
             string updateMessage = updateMode
-                ? "Automatic updates were left unchanged."
+                ? InstallerCore.RefreshAutoUpdateIfEnabled(folderBox.Text.Trim())
                 : InstallerCore.ConfigureAutoUpdate(folderBox.Text.Trim(), autoUpdateCheck.Checked);
             Cursor = Cursors.Default;
             MessageBox.Show(this,
-                "Installation complete.\r\n\r\n" + result.Target + "\r\n\r\n" + result.RitualMessage + "\r\n\r\n" + updateMessage + "\r\n\r\nReselect the filter in-game if Path of Exile 2 is already open.",
+                "Installation complete.\r\n\r\n" + result.Target + "\r\n\r\n" + result.FilterMessage + "\r\n\r\n" + result.RitualMessage + "\r\n\r\n" + updateMessage + "\r\n\r\nReselect the filter in-game if Path of Exile 2 is already open.",
                 "Divine Hunters Filter Setup", MessageBoxButtons.OK, MessageBoxIcon.Information);
             Close();
         }
@@ -673,8 +646,14 @@ internal static class Program
         {
             try
             {
-                InstallerCore.Install(args[1], false);
-                InstallerCore.ConfigureAutoUpdate(args[1], true);
+                // The legacy updater only marks v1.4.0 installed when both the
+                // rolling-channel download and task migration succeed. Otherwise it
+                // retains v1.3.0 state and retries this migration on its next run.
+                InstallerCore.Install(args[1], false, false);
+                string schedule = InstallerCore.ConfigureAutoUpdate(args[1], true);
+                if (schedule.StartsWith("Automatic updates could not", StringComparison.Ordinal))
+                    return 1;
+                InstallerCore.RecordInstalledVersion();
                 return 0;
             }
             catch
@@ -690,8 +669,14 @@ internal static class Program
                 InstallerCore.Install(args[1], true, false);
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                string errorPath = Environment.GetEnvironmentVariable("DIVINEHUNTERS_TEST_ERROR_LOG");
+                if (!string.IsNullOrWhiteSpace(errorPath))
+                {
+                    try { File.WriteAllText(errorPath, ex.ToString()); }
+                    catch { }
+                }
                 return 1;
             }
         }

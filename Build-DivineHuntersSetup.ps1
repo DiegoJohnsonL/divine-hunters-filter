@@ -9,6 +9,7 @@ $output = Join-Path $root 'DivineHuntersSetup.exe'
 $source = Join-Path $root 'DivineHuntersSetup.cs'
 $versionSource = Join-Path $root 'DivineHuntersVersion.cs'
 $updaterSource = Join-Path $root 'DivineHuntersUpdater.cs'
+$filterChannelSource = Join-Path $root 'DivineHuntersFilterChannel.cs'
 $updaterOutput = Join-Path $root '_filter-cache\DivineHuntersUpdater.build.exe'
 
 $csc = @(
@@ -35,6 +36,7 @@ $updaterArguments = @(
     '/reference:System.dll'
     "/reference:$webExtensions"
     $versionSource
+    $filterChannelSource
     $updaterSource
 )
 
@@ -45,14 +47,10 @@ $arguments = @(
     '/reference:System.dll'
     '/reference:System.Drawing.dll'
     '/reference:System.Windows.Forms.dll'
+    "/reference:$webExtensions"
     "/resource:$updaterOutput,DivineHuntersUpdater"
-    "/resource:$(Join-Path $root 'Divine Hunters.filter'),DivineHuntersFilter"
-    "/resource:$(Join-Path $root 'hibdivine.mp3'),hibdivine.mp3"
-    "/resource:$(Join-Path $root 'HibOmenLight.mp3'),HibOmenLight.mp3"
-    "/resource:$(Join-Path $root 'Echoes.mp3'),Echoes.mp3"
-    "/resource:$(Join-Path $root 'OmenOfTheLiege.mp3'),OmenOfTheLiege.mp3"
-    "/resource:$(Join-Path $root 'OrbOfAnnulment.mp3'),OrbOfAnnulment.mp3"
     $versionSource
+    $filterChannelSource
     $source
 )
 
