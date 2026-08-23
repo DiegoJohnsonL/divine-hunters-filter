@@ -85,7 +85,8 @@ Then:
 
 ## For AI agents and contributors
 
-1. Read `AGENTS.md` and this README before editing.
+1. Read `AGENTS.md`, this README, and the task-oriented
+   [`AGENT-FIELD-GUIDE.md`](AGENT-FIELD-GUIDE.md) before editing.
 2. Never hand-edit `Divine Hunters.filter`; it is generated output. Put personal rules
    in `_filter-build-script.awk`.
 3. Remember that the first matching rule wins. Put an override above the stock rule it must beat;
@@ -347,6 +348,7 @@ reproduced in the filter's own header. Summary:
 | File | Role |
 |---|---|
 | `Divine Hunters.filter` | **Generated.** The installed filter. Do not hand-edit. |
+| `AGENT-FIELD-GUIDE.md` | Task router, trusted sources, investigation recipes, audio checks, and rollout verification for future agents. |
 | `Divine Hunters.filter.bak` | Previous build, kept automatically on install |
 | `Divine Hunters.filter.before-divinehunters-*.bak` | Installer restore point; only the newest is retained |
 | `_filter-build-script.awk` | **Source of truth** for personal customisations |
