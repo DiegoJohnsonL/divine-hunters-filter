@@ -97,6 +97,13 @@ function Say([string] $m) {
     $script:Lines += ('{0}  {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $m)
 }
 
+function Write-Utf8Lf([string] $Path, [string[]] $ContentLines) {
+    # GitHub publishes the LF-normalized Git blob. Emit those same bytes locally so
+    # the installed filter and rolling-channel asset can share one SHA-256 digest.
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($Path, (($ContentLines -join "`n") + "`n"), $utf8NoBom)
+}
+
 function Get-Json([string] $Url) {
     Invoke-RestMethod -Uri $Url -Headers @{ 'User-Agent' = $UserAgent } -TimeoutSec 40
 }
@@ -891,14 +898,14 @@ if ($mojibake) {
 }
 if ($bad -gt 0) { throw "$bad structural problem(s) - refusing to install." }
 Say "structure   : OK  ($($final.Count) lines)"
-[System.IO.File]::WriteAllLines($staged, $final, (New-Object System.Text.UTF8Encoding($false)))
+Write-Utf8Lf $staged $final
 
 # ------------------------------------------------------------------ 10. install
 if ($DryRun) {
     Say "DRY RUN - nothing written. Staged build is at $staged"
 } else {
     if (Test-Path $Output) { Copy-Item $Output "$Output.bak" -Force }
-    [System.IO.File]::WriteAllLines($Output, $final, (New-Object System.Text.UTF8Encoding($false)))
+    Write-Utf8Lf $Output $final
     Say "installed   : $Output  (previous kept as .bak)"
     Say "Reload the filter in-game to pick it up."
 }
