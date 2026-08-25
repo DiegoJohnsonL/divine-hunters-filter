@@ -57,12 +57,14 @@ Use this order:
 
 Do not hide a unique base merely because most outcomes are cheap. An unidentified `Wide Belt`,
 for example, cannot be separated by unique name at filter time. If the same base can produce a
-chase unique, hiding the base can hide the chase drop too. The updater therefore preserves
-NeverSink `PreventHiding` bases, unique scepters, special corruption/Vaal/quality/socket states,
-and bases with insufficient evidence. Narrow, reviewed exceptions may let the live floor govern
-a single-outcome recipe ingredient when its market is liquid; do not generalise that exception
-to ambiguous or high-variance bases. Socket safeguards must mirror the class-aware stock rules:
-3+ for two-handed/body classes and 2+ for one-handed/armour classes.
+chase unique, hiding the base can hide the chase drop too. The updater therefore prices the most
+valuable world-droppable outcome and protects the whole base when any outcome lacks sufficient
+evidence. NeverSink `PreventHiding` is advisory metadata, not an unconditional show rule; trusted
+bases whose best outcome is below the floor may be hidden even when they are Runeforging or Vaal
+crafting ingredients. Unique scepters, actual Vaal modifiers, special corruption/quality/socket
+states, and bases with insufficient evidence remain visible. Plain `IsVaalUnique` eligibility is
+not itself a special state. Socket safeguards must mirror the class-aware stock rules: 3+ for
+two-handed/body classes and 2+ for one-handed/armour classes.
 
 For the current thresholds and safety logic, read the **Useful parameters** and **Customisations**
 sections in `README.md`; do not copy threshold values into new code from memory.
@@ -78,8 +80,8 @@ Use sources for the job they are good at and record the league and retrieval tim
 2. [NeverSink PoE2 filter](https://github.com/NeverSinkDev/NeverSink-Filter-for-PoE2) — upstream
    stock rule structure and strictness/economy tierlists.
 3. [NeverSink economy aspects](https://github.com/NeverSinkDev/Filter-ItemEconomyAspects) —
-   authoritative input for this project when mapping unique names to filter bases and honoring
-   `NonDrop`, `PreventHiding`, and related safety metadata.
+   authoritative input for this project when mapping unique names to filter bases and interpreting
+   `NonDrop`, `PreventHiding`, and related safety metadata. `PreventHiding` remains advisory here.
 4. [PoE2DB](https://poe2db.tw/us/) — exact game names, base classes, modifiers, and acquisition or
    drop-mechanic investigation. It is game data, not proof of current market value.
 5. [Official item-filter reference](https://www.pathofexile.com/item-filter/about) — syntax and

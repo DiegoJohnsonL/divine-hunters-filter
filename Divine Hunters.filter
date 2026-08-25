@@ -29,8 +29,9 @@
 # 8) Uncut Support Gems hidden in maps.
 # 9) Runes: STOCK, untouched - plain/Lesser and Greater Adept-type runes stay hidden.
 # 10) Endgame rare jewellery ([[1400]]) disabled entirely - matches 9L. Only tier-5 gear shows.
-# 11) Uniques: ported 9L logic - T3 + T3-boss now SHOWN, and the 5 optional rules stock ships
-#     off are enabled (over-quality, over-socket x2, Loreweaver rings, Vaal-type). T4 stays hidden.
+# 11) Uniques: ported 9L logic - T3 + T3-boss now SHOWN, and 4 optional rules stock ships
+#     off are enabled (over-quality, over-socket x2, Loreweaver rings). The plain Vaal-type
+#     rule stays off so cheap crafting ingredients follow live value. T4 stays hidden.
 # 12) Economy crafting bases: only the ilvl 82 group survives (group1t1 + group1t2).
 #     group2t2 (ilvl 81) and group3t2 (ilvl 79) are disabled - that was the white Sacred Focus.
 # 13) Uniques, $tier->hideable (184 bases): left HIDDEN, as stock. Verified against live prices -
@@ -62,9 +63,9 @@
 #     known essences are hidden so stale NeverSink S/A/B/C labels cannot re-show them.
 # 20) Uniques: the economy updater hides tracked visible bases below the live 0.50-divine
 #     floor, but keeps every unique Sceptre for same-class Vaal rerolling and preserves
-#     special corruption, Vaal, quality and genuinely exceptional socket states. NeverSink
-#     PreventHiding outcomes remain visible as ambiguity safeguards except reviewed,
-#     single-outcome Runeforging ingredients whose live value is authoritative.
+#     special corruption, actual Vaal modifiers, quality and genuinely exceptional socket
+#     states. NeverSink PreventHiding is advisory: the most valuable trusted droppable outcome
+#     governs each unidentified base, while any untrusted outcome protects the whole base.
 # 21) Lineage Support Gems: the economy updater uses live prices with liquidity/chase safeguards;
 #     unknown API entries remain visible, with narrow fallbacks for reviewed low-value omissions.
 # 22) Endgame tier-5 rare/magic gear: all rare drops are hidden; magic drops are hidden except
@@ -2664,13 +2665,13 @@ Show # $type->relics->generic $tier->any !exotics_dtier
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live lineage support pickup policy - regenerated in full on every run
 #===============================================================================================================
-# Generated 2026-08-25 11:24 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 354 ex
+# Generated 2026-08-25 12:43 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 349 ex
 # Normal floor: 0.5 div with 5+ listings; thin floor: 1 div with 3+ listings; chase floor: 2 div.
 # Unknown or unpriced API entries remain visible; reviewed low-value names missing from poe2scout use a narrow fallback.
 
 Show # [CUSTOM][ECONOMY] lineage support value floor >= 0.5 div
 	Class == "Skill Gems" "Support Gems"
-	BaseType == "Uul-Netol's Embrace" "Garukhan's Resolve" "Seraph's Heart" "Atziri's Communion" "Uhtred's Exodus" "Esh's Radiance" "Her Declaration" "Dialla's Desire" "Rigwald's Ferocity" "Rakiata's Flow" "Uhtred's Augury" "Tul's Stillness" "Xoph's Pyre" "Breachlord's Rift" "Vorana's Siege" "Uhtred's Omen" "Olroth's Conviction" "Breachlord's Amalgam" "Atalui's Bloodletting" "Khatal's Rejuvenation" "Esh's Prowess" "Atziri's Allure" "Uhtred's Rite" "Ixchel's Torment" "Amanamu's Tithe" "Ailith's Chimes" "Mórrigan's Insight" "Arbiter's Ignition"
+	BaseType == "Uul-Netol's Embrace" "Garukhan's Resolve" "Seraph's Heart" "Atziri's Communion" "Uhtred's Exodus" "Esh's Radiance" "Her Declaration" "Dialla's Desire" "Rigwald's Ferocity" "Rakiata's Flow" "Uhtred's Augury" "Tul's Stillness" "Xoph's Pyre" "Breachlord's Rift" "Vorana's Siege" "Uhtred's Omen" "Olroth's Conviction" "Breachlord's Amalgam" "Atalui's Bloodletting" "Khatal's Rejuvenation" "Uhtred's Rite" "Esh's Prowess" "Atziri's Allure" "Amanamu's Tithe" "Ixchel's Torment" "Ailith's Chimes" "Mórrigan's Insight" "Arbiter's Ignition" "Catha's Brilliance"
 	SetFontSize 42
 	SetTextColor 255 255 255 255
 	SetBorderColor 255 255 255 255
@@ -2692,7 +2693,7 @@ Show # [CUSTOM][ECONOMY] unknown or unpriced lineage supports - safety net
 
 Hide # [CUSTOM][ECONOMY] lineage supports below the live pickup floor
 	Class == "Skill Gems" "Support Gems"
-	BaseType == "Ahn's Citadel" "Arakaali's Lust" "Arbiter's Reach" "Arjun's Medal" "Atziri's Impatience" "Bhatair's Vengeance" "Brutus' Brain" "Catha's Brilliance" "Cirel's Cultivation" "Daresso's Passion" "Doedre's Undoing" "Dominus' Grasp" "Einhar's Beastrite" "Guatelitzi's Ablation" "Hayoxi's Fulmination" "Helbrym's Hide" "Kalisa's Crescendo" "Kaom's Madness" "Kulemak's Dominion" "Kurgal's Leash" "Medved's Felling" "Morgana's Tempest" "Oisín's Oath" "Olroth's Hubris" "Paquate's Pact" "Prototype Seventeen" "Ratha's Assault" "Romira's Requital" "Sione's Temper" "Styrn's Ferocity" "Styrn's Mountain" "Tacati's Ire" "Tangmazu's Thurible" "Tasalio's Rhythm" "Tawhoa's Tending" "Tecrod's Revenge" "Trickster's Shard" "Tul's Avalanche" "Uhtred's Constellation" "Uruk's Smelting" "Varashta's Blessing" "Vilenta's Propulsion" "Vruun's Aftermath" "Vruun's Inevitability" "Xibaqua's Rending" "Zarokh's Refrain" "Zarokh's Revolt" "Zerphi's Infamy"
+	BaseType == "Ahn's Citadel" "Arakaali's Lust" "Arbiter's Reach" "Arjun's Medal" "Atziri's Impatience" "Bhatair's Vengeance" "Brutus' Brain" "Cirel's Cultivation" "Daresso's Passion" "Doedre's Undoing" "Dominus' Grasp" "Einhar's Beastrite" "Guatelitzi's Ablation" "Hayoxi's Fulmination" "Helbrym's Hide" "Kalisa's Crescendo" "Kaom's Madness" "Kulemak's Dominion" "Kurgal's Leash" "Medved's Felling" "Morgana's Tempest" "Oisín's Oath" "Olroth's Hubris" "Paquate's Pact" "Prototype Seventeen" "Ratha's Assault" "Romira's Requital" "Sione's Temper" "Styrn's Ferocity" "Styrn's Mountain" "Tacati's Ire" "Tangmazu's Thurible" "Tasalio's Rhythm" "Tawhoa's Tending" "Tecrod's Revenge" "Trickster's Shard" "Tul's Avalanche" "Uhtred's Constellation" "Uruk's Smelting" "Varashta's Blessing" "Vilenta's Propulsion" "Vruun's Aftermath" "Vruun's Inevitability" "Xibaqua's Rending" "Zarokh's Refrain" "Zarokh's Revolt" "Zerphi's Infamy"
 	SetFontSize 18
 	SetBackgroundColor 20 20 0 0
 
@@ -3783,13 +3784,13 @@ Show # $type->currency->catalysts $tier->restex !utility_unknownitem
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live essence pickup policy - regenerated in full on every run
 #===============================================================================================================
-# Generated 2026-08-25 11:24 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 354 ex
+# Generated 2026-08-25 12:43 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 349 ex
 # Show floor: 0.1 div with 10+ listings; thin-market exception: 0.25 div with 5+ listings.
 # Current and trailing prices are used, and every known lower-value essence is hidden above the stock tierlist.
 
 Show # [CUSTOM][ECONOMY] essence value floor >= 0.1 div
 	Class == "Stackable Currency"
-	BaseType == "Essence of Delirium" "Essence of Horror" "Essence of Hysteria" "Essence of the Breach"
+	BaseType == "Essence of Delirium" "Essence of Horror" "Essence of Hysteria" "Perfect Essence of Command" "Essence of the Breach"
 	SetFontSize 42
 	SetTextColor 255 255 255 255
 	SetBorderColor 255 255 255 255
@@ -3800,7 +3801,7 @@ Show # [CUSTOM][ECONOMY] essence value floor >= 0.1 div
 
 Hide # [CUSTOM][ECONOMY] essences below the live pickup floor
 	Class == "Stackable Currency"
-	BaseType == "Essence of Abrasion" "Essence of Alacrity" "Essence of Battle" "Essence of Command" "Essence of Electricity" "Essence of Enhancement" "Essence of Flames" "Essence of Grounding" "Essence of Haste" "Essence of Ice" "Essence of Insanity" "Essence of Insulation" "Essence of Opulence" "Essence of Ruin" "Essence of Seeking" "Essence of Sorcery" "Essence of Thawing" "Essence of the Abyss" "Essence of the Body" "Essence of the Infinite" "Essence of the Mind" "Greater Essence of Abrasion" "Greater Essence of Alacrity" "Greater Essence of Battle" "Greater Essence of Command" "Greater Essence of Electricity" "Greater Essence of Enhancement" "Greater Essence of Flames" "Greater Essence of Grounding" "Greater Essence of Haste" "Greater Essence of Ice" "Greater Essence of Insulation" "Greater Essence of Opulence" "Greater Essence of Ruin" "Greater Essence of Seeking" "Greater Essence of Sorcery" "Greater Essence of Thawing" "Greater Essence of the Body" "Greater Essence of the Infinite" "Greater Essence of the Mind" "Lesser Essence of Abrasion" "Lesser Essence of Alacrity" "Lesser Essence of Battle" "Lesser Essence of Command" "Lesser Essence of Electricity" "Lesser Essence of Enhancement" "Lesser Essence of Flames" "Lesser Essence of Grounding" "Lesser Essence of Haste" "Lesser Essence of Ice" "Lesser Essence of Insulation" "Lesser Essence of Opulence" "Lesser Essence of Ruin" "Lesser Essence of Seeking" "Lesser Essence of Sorcery" "Lesser Essence of Thawing" "Lesser Essence of the Body" "Lesser Essence of the Infinite" "Lesser Essence of the Mind" "Perfect Essence of Abrasion" "Perfect Essence of Alacrity" "Perfect Essence of Battle" "Perfect Essence of Command" "Perfect Essence of Electricity" "Perfect Essence of Enhancement" "Perfect Essence of Flames" "Perfect Essence of Grounding" "Perfect Essence of Haste" "Perfect Essence of Ice" "Perfect Essence of Insulation" "Perfect Essence of Opulence" "Perfect Essence of Ruin" "Perfect Essence of Seeking" "Perfect Essence of Sorcery" "Perfect Essence of Thawing" "Perfect Essence of the Body" "Perfect Essence of the Infinite" "Perfect Essence of the Mind"
+	BaseType == "Essence of Abrasion" "Essence of Alacrity" "Essence of Battle" "Essence of Command" "Essence of Electricity" "Essence of Enhancement" "Essence of Flames" "Essence of Grounding" "Essence of Haste" "Essence of Ice" "Essence of Insanity" "Essence of Insulation" "Essence of Opulence" "Essence of Ruin" "Essence of Seeking" "Essence of Sorcery" "Essence of Thawing" "Essence of the Abyss" "Essence of the Body" "Essence of the Infinite" "Essence of the Mind" "Greater Essence of Abrasion" "Greater Essence of Alacrity" "Greater Essence of Battle" "Greater Essence of Command" "Greater Essence of Electricity" "Greater Essence of Enhancement" "Greater Essence of Flames" "Greater Essence of Grounding" "Greater Essence of Haste" "Greater Essence of Ice" "Greater Essence of Insulation" "Greater Essence of Opulence" "Greater Essence of Ruin" "Greater Essence of Seeking" "Greater Essence of Sorcery" "Greater Essence of Thawing" "Greater Essence of the Body" "Greater Essence of the Infinite" "Greater Essence of the Mind" "Lesser Essence of Abrasion" "Lesser Essence of Alacrity" "Lesser Essence of Battle" "Lesser Essence of Command" "Lesser Essence of Electricity" "Lesser Essence of Enhancement" "Lesser Essence of Flames" "Lesser Essence of Grounding" "Lesser Essence of Haste" "Lesser Essence of Ice" "Lesser Essence of Insulation" "Lesser Essence of Opulence" "Lesser Essence of Ruin" "Lesser Essence of Seeking" "Lesser Essence of Sorcery" "Lesser Essence of Thawing" "Lesser Essence of the Body" "Lesser Essence of the Infinite" "Lesser Essence of the Mind" "Perfect Essence of Abrasion" "Perfect Essence of Alacrity" "Perfect Essence of Battle" "Perfect Essence of Electricity" "Perfect Essence of Enhancement" "Perfect Essence of Flames" "Perfect Essence of Grounding" "Perfect Essence of Haste" "Perfect Essence of Ice" "Perfect Essence of Insulation" "Perfect Essence of Opulence" "Perfect Essence of Ruin" "Perfect Essence of Seeking" "Perfect Essence of Sorcery" "Perfect Essence of Thawing" "Perfect Essence of the Body" "Perfect Essence of the Infinite" "Perfect Essence of the Mind"
 	SetFontSize 18
 	SetBackgroundColor 20 20 0 0
 
@@ -4075,11 +4076,12 @@ Show # $type->uniques $tier->sekhemaring !uniques_a
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live unique pickup policy - regenerated in full on every run
 #===============================================================================================================
-# Generated 2026-08-25 11:24 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 354 ex
+# Generated 2026-08-25 12:43 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 349 ex
 # Plain visible unique bases below 0.5 div are hidden after these exceptions.
-# NeverSink PreventHiding outcomes remain visible except reviewed single-outcome recipe ingredients.
+# NeverSink PreventHiding is advisory; the highest trusted droppable outcome governs each base.
+# Any untrusted outcome protects the whole unidentified base from the price-floor hide.
 # Unique scepters stay visible because same-class Vaal rerolling can produce valuable scepter outcomes.
-# Special corruption, Vaal, quality and socket states stay visible for identification/crafting value.
+# Actual Vaal modifiers, special corruption, quality and socket states stay visible for crafting value.
 
 Show # [CUSTOM][ECONOMY] all unique scepters - same-class reroll exception
 	Class == "Sceptres"
@@ -4116,17 +4118,6 @@ Show # [CUSTOM][ECONOMY] double-corrupted uniques
 
 Show # [CUSTOM][ECONOMY] uniques with Vaal modifiers
 	HasVaalUniqueMod True
-	Rarity Unique
-	SetFontSize 42
-	SetTextColor 0 0 0 255
-	SetBorderColor 0 240 190 255
-	SetBackgroundColor 188 96 37 255
-	PlayAlertSound 3 300
-	PlayEffect Purple
-	MinimapIcon 0 Purple Star
-
-Show # [CUSTOM][ECONOMY] Vaal uniques
-	IsVaalUnique True
 	Rarity Unique
 	SetFontSize 42
 	SetTextColor 0 0 0 255
@@ -4185,7 +4176,7 @@ Show # [CUSTOM][ECONOMY] exceptional-socket uniques - one-handed/armour classes
 
 Hide # [CUSTOM][ECONOMY] visible unique bases below 0.5 div
 	Rarity Unique
-	BaseType == "Azure Amulet" "Leaden Greathammer" "Omen Crest Shield" "Torn Gloves" "Execratus Hammer" "Silk Robe" "Ultimate Life Flask" "Death Mask" "Broadhead Quiver" "Furtive Wraps" "Shaman Mantle" "Tattered Robe" "Vermeil Circlet" "Wrapped Sandals" "Barbed Spear" "Champion Cuirass" "Composite Bow" "Covert Hood" "Helix Spear" "Lattice Sandals" "Shortbow" "Spired Greathelm" "Stocky Mitts" "Trarthan Cannon" "Winged Spear" "Topaz Ring" "Transcendent Mana Flask" "Ancient Leggings" "Emerald Ring" "Iron Crown" "Lazuli Ring" "Morning Star" "Amethyst Ring" "Brimmed Helm" "Stellar Amulet" "Two-Stone Ring" "Array Buckler" "Pearl Ring"
+	BaseType == "Amphora Relic" "Ancestral Mail" "Anchorite Garb" "Antidote Charm" "Antler Focus" "Azure Amulet" "Bolstered Mitts" "Breach Tablet" "Burnished Gauntlets" "Corsair Cap" "Crimson Amulet" "Crude Bow" "Delirium Tablet" "Double Belt" "Face Mask" "Forked Spear" "Gargantuan Life Flask" "Gilded Vestments" "Gold Circlet" "Grounding Charm" "Heavy Bow" "Heraldric Tower Shield" "Heroic Armour" "Iron Greaves" "Jewelled Gloves" "Lapis Amulet" "Leaden Greathammer" "Linen Belt" "Long Belt" "Lunar Amulet" "Magus Tiara" "Mail Belt" "Marching Mace" "Moulded Mitts" "Omen Crest Shield" "Ornate Belt" "Overseer Tablet" "Pauascale Gloves" "Plate Belt" "Plated Vestments" "Prismatic Ring" "Revered Vestments" "Ruby Charm" "Sacral Quiver" "Sacrificial Mantle" "Sapphire Charm" "Seal Relic" "Secured Leggings" "Solar Amulet" "Solid Mask" "Spined Bracers" "Staunching Charm" "Stone Greaves" "Tapestry Relic" "Topaz Charm" "Torn Gloves" "Vaal Cuirass" "Velvet Cap" "Voodoo Focus" "Wide Belt" "Wrapped Greathelm" "Amethyst Charm" "Execratus Hammer" "Martyr Crown" "Rope Cuffs" "Silk Robe" "Smuggler Coat" "Ultimate Life Flask" "Utility Wraps" "Blacksteel Tower Shield" "Corvus Mantle" "Death Mask" "Dousing Charm" "Enlightened Robe" "Fine Belt" "Trimmed Greaves" "Viper Cap" "Broadhead Quiver" "Fanatic Bow" "Furtive Wraps" "Permafrost Staff" "Shaman Mantle" "Tattered Robe" "Totemic Greatclub" "Vermeil Circlet" "Wrapped Sandals" "Barbed Spear" "Champion Cuirass" "Composite Bow" "Covert Hood" "Desolate Crossbow" "Embroidered Gloves" "Giant Maul" "Helix Spear" "Lattice Sandals" "Shortbow" "Spiked Club" "Spired Greathelm" "Stocky Mitts" "Trarthan Cannon" "Armoured Vest" "Ashbark Talisman" "Felt Cap" "Intricate Crest Shield" "Jade Amulet" "Winged Spear" "Altar Robe" "Topaz Ring" "Transcendent Mana Flask" "Ancient Leggings" "Conqueror Plate" "Emerald Ring" "Heavy Crown" "Iron Crown" "Lazuli Ring" "Gargantuan Mana Flask" "Bloodstone Amulet" "Thawing Charm" "Decorated Helm" "Morning Star" "Amethyst Ring" "Gold Ring" "Torment Club" "Brimmed Helm" "Stellar Amulet" "Two-Stone Ring" "Stone Charm" "Fine Bracers" "Silver Charm" "Array Buckler" "Pearl Ring" "Armoured Cap" "Ritual Tablet"
 	SetFontSize 18
 	SetBackgroundColor 20 20 0 0
 
@@ -4195,7 +4186,7 @@ Hide # [CUSTOM][ECONOMY] visible unique bases below 0.5 div
 #===============================================================================================================
 # [CUSTOM][ECONOMY] Live market overrides - regenerated in full on every run, do not hand-edit
 #===============================================================================================================
-# Generated 2026-08-25 11:24 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 354 ex
+# Generated 2026-08-25 12:43 from api.poe2scout.com | league: Runes of Aldur | 1 divine = 349 ex
 # Thresholds: S >= 10 div, A >= 2 div, B >= 0.5 div.
 # Confidence: 5+ live listings, or 5+ historical snapshots; thin markets use the lower quartile.
 # Prices are taken on the best unique each base can actually drop; uncertain bases are never hidden.
@@ -4368,16 +4359,16 @@ Show # $type->uniques $tier->corrupteduniques !uniques_b
 #   [2905] Tier 3 uniques 
 #------------------------------------
 
-Show # %D5 $type->uniques $tier->vaaltypeuniques !uniques_b   # [CUSTOM] enabled (stock has this off, 9L has it on)
-	IsVaalUnique True
-	Rarity Unique
-	SetFontSize 42
-	SetTextColor 188 96 37 255
-	SetBorderColor 188 96 37 255
-	SetBackgroundColor 53 13 13 255
-	PlayAlertSound 3 300
-	PlayEffect Brown
-	MinimapIcon 1 Brown Star
+#Show # %D5 $type->uniques $tier->vaaltypeuniques !uniques_b
+#	IsVaalUnique True
+#	Rarity Unique
+#	SetFontSize 42
+#	SetTextColor 188 96 37 255
+#	SetBorderColor 188 96 37 255
+#	SetBackgroundColor 53 13 13 255
+#	PlayAlertSound 3 300
+#	PlayEffect Brown
+#	MinimapIcon 1 Brown Star
 
 Show # %H5 $type->uniques $tier->t3boss !uniques_xbossdrop   # [CUSTOM] was Hide - 9L shows this tier
 	Rarity Unique

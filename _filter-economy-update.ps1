@@ -171,14 +171,6 @@ if ($needAspects) {
 $noDrop          = @{}
 $aspectBase       = @{}
 $preventHideBases = @{}
-$droppableNamesByBase = @{}
-# These single-outcome Runeforging ingredients have been reviewed against the live
-# market. Their recipe eligibility alone is not a reason to defeat the pickup floor;
-# if demand ever makes them valuable, the normal price promotion restores them.
-$preventHidePriceFloorOverrides = @{
-    'Leaden Greathammer' = $true # Chober Chaber
-    'Torn Gloves'        = $true # Painter's Servant
-}
 $aspects = ([System.IO.File]::ReadAllText($aspectFile, (New-Object System.Text.UTF8Encoding($false))) | ConvertFrom-Json).Aspects
 foreach ($baseProp in $aspects.PSObject.Properties) {
     foreach ($u in $baseProp.Value) {
@@ -187,20 +179,10 @@ foreach ($baseProp in $aspects.PSObject.Properties) {
         if (-not [string]::IsNullOrWhiteSpace($u.BaseType)) {
             $aspectBase[$u.Name] = $u.BaseType
             if ($u.Aspects -contains 'PreventHiding') { $preventHideBases[$u.BaseType] = $true }
-            if (-not $isNonDrop) {
-                if (-not $droppableNamesByBase.ContainsKey($u.BaseType)) { $droppableNamesByBase[$u.BaseType] = @() }
-                $droppableNamesByBase[$u.BaseType] = @($droppableNamesByBase[$u.BaseType]) + @($u.Name)
-            }
         }
     }
 }
-foreach ($base in $preventHidePriceFloorOverrides.Keys) {
-    $outcomes = @($droppableNamesByBase[$base])
-    if ($outcomes.Count -ne 1) {
-        throw "Reviewed PreventHiding override '$base' now has $($outcomes.Count) world-droppable outcomes; review before allowing the live price floor to hide it."
-    }
-}
-Say "aspects     : $($aspectBase.Count) uniques mapped, $($noDrop.Count) flagged as non-world-drop, $($preventHideBases.Count) protected bases"
+Say "aspects     : $($aspectBase.Count) uniques mapped, $($noDrop.Count) flagged as non-world-drop, $($preventHideBases.Count) PreventHiding advisories"
 
 # ----------------------------------------------------------------- 3. league
 $leagues = Get-Json "$ApiRoot/poe2/Leagues"
@@ -492,18 +474,16 @@ $uniqueHide = @()
 foreach ($entry in $best.GetEnumerator()) {
     $base = $entry.Key
     $row  = $entry.Value
-    $protectedByAspect = $preventHideBases.ContainsKey($base) -and
-        -not $preventHidePriceFloorOverrides.ContainsKey($base)
     if ($current.ContainsKey($base) -and $current[$base] -gt 0 -and
         -not $uncertainBases.ContainsKey($base) -and
-        -not $protectedByAspect -and $row.Div -lt $UniqueFloor) {
+        $row.Div -lt $UniqueFloor) {
         $uniqueHide += [pscustomobject]@{ Base = $base; Div = $row.Div; Name = $row.Name; Qty = $row.Qty; History = $row.History; Mode = $row.Mode }
     }
 }
 $uniqueHide = @($uniqueHide | Sort-Object -Property Div, Base)
-$effectivePreventHideCount = @($preventHideBases.Keys | Where-Object { -not $preventHidePriceFloorOverrides.ContainsKey($_) }).Count
-Say "unique floor : hide $($uniqueHide.Count) tracked visible bases below $UniqueFloor div; preserve $effectivePreventHideCount PreventHiding and $($uncertainBases.Count) uncertain bases plus scepters/special states"
-Say "             reviewed price-floor overrides: $(@($preventHidePriceFloorOverrides.Keys | Sort-Object) -join ', ')"
+$advisoryHideCount = @($uniqueHide | Where-Object { $preventHideBases.ContainsKey($_.Base) }).Count
+Say "unique floor : hide $($uniqueHide.Count) tracked visible bases below $UniqueFloor div; preserve $($uncertainBases.Count) uncertain bases plus scepters/modified states"
+Say "             PreventHiding is advisory: $advisoryHideCount trusted below-floor base(s) now follow live value"
 
 # ------------------------------------------------------------- 6. decide changes
 $promoS = @(); $promoA = @(); $promoB = @(); $quiet = @(); $unknown = @()
@@ -680,9 +660,10 @@ $uniquePolicyBlock = @(
     '#===============================================================================================================',
     "# Generated $stamp from api.poe2scout.com | league: $League | 1 divine = $([math]::Round($divine)) ex",
     "# Plain visible unique bases below $UniqueFloor div are hidden after these exceptions.",
-    '# NeverSink PreventHiding outcomes remain visible except reviewed single-outcome recipe ingredients.',
+    '# NeverSink PreventHiding is advisory; the highest trusted droppable outcome governs each base.',
+    '# Any untrusted outcome protects the whole unidentified base from the price-floor hide.',
     '# Unique scepters stay visible because same-class Vaal rerolling can produce valuable scepter outcomes.',
-    '# Special corruption, Vaal, quality and socket states stay visible for identification/crafting value.',
+    '# Actual Vaal modifiers, special corruption, quality and socket states stay visible for crafting value.',
     ''
 )
 $uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] all unique scepters - same-class reroll exception' `
@@ -693,8 +674,6 @@ $uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] double-corru
     @('TwiceCorrupted True','Rarity Unique') $uniqueSpecialStyle
 $uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] uniques with Vaal modifiers' `
     @('HasVaalUniqueMod True','Rarity Unique') $uniqueSpecialStyle
-$uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] Vaal uniques' `
-    @('IsVaalUnique True','Rarity Unique') $uniqueSpecialStyle
 $uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] corrupted enchanted uniques' `
     @('AnyEnchantment True','Corrupted True','Rarity Unique') $uniqueSpecialStyle
 $uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] over-quality uniques' `
@@ -886,6 +865,15 @@ for ($i = 0; $i -lt $final.Count; $i++) {
     if ($inBlock -and $l -match '^\s*#')    { Say "  ERROR comment inside rule at line $($i+1): $l"; $bad++ }
 }
 if ($final -match 'BaseType\s*==\s*$') { Say "  ERROR empty BaseType list emitted"; $bad++ }
+
+# Plain Vaal compatibility is only upgrade potential; it must not bypass the live
+# pickup floor. The AWK layer leaves the stock rule disabled, and this tripwire
+# catches an upstream rule-state or layout change before it can reintroduce clutter.
+$plainVaalShow = $final | Select-String -Pattern '^\s+IsVaalUnique\s+True\s*$' | Select-Object -First 1
+if ($plainVaalShow) {
+    Say "  ERROR active IsVaalUnique show condition at line $($plainVaalShow.LineNumber)"
+    $bad++
+}
 
 # Mojibake tripwire. A codepage mishap turns UTF-8 into box-drawing / replacement
 # characters, and the game then rejects the whole filter with "Unable to parse

@@ -257,7 +257,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "_filter-economy-update.ps1"
 | `-LineageThinFloor` | `1.00` | Thin-market lineage-support floor. |
 | `-LineageThinMinListings` | `3` | Minimum listings at the thin-market lineage floor. |
 | `-LineageChaseFloor` | `2.00` | Always retain a priced lineage support at or above this value. |
-| `-UniqueFloor` | `0.50` | Hide tracked visible unique bases below this value; ambiguity-protected `PreventHiding` bases, unique scepters, and special states remain visible. Reviewed single-outcome recipe ingredients still follow the floor. |
+| `-UniqueFloor` | `0.50` | Hide tracked visible unique bases when their most valuable trusted droppable outcome is below this value. Any untrusted outcome protects the base; `PreventHiding` is advisory. Unique scepters and genuinely modified special states remain visible. |
 | `-BaseFilter` | auto | Force a specific base instead of the freshest cached one. |
 | `-Output` | installed path | Write somewhere else. |
 
@@ -328,7 +328,7 @@ reproduced in the filter's own header. Summary:
 | 8 | Uncut Support Gems hidden in maps |
 | 9 | Runes: stock |
 | 10 | Endgame rare jewellery disabled entirely |
-| 11 | Uniques: T3 + T3-boss shown, 5 optional rules enabled (9L parity) |
+| 11 | Uniques: T3 + T3-boss shown; 4 optional rules enabled (over-quality, over-socket x2, Loreweaver). The plain Vaal-type rule stays disabled so cheap crafting ingredients follow live value. |
 | 12 | Economy crafting bases: only the ilvl 82 group survives |
 | 13 | Uniques `$tier->hideable`: left hidden, economy script promotes any that climb |
 | 14 | Custom drop sounds on Divine Orb, Omen of Light, Omen of Abyssal Echoes, Omen of the Liege, and Orb of Annulment |
@@ -337,7 +337,7 @@ reproduced in the filter's own header. Summary:
 | 17 | Exalted Orb + Greater Exalted hidden at any stack; Vaal Orb only in stacks of 2+; Perfect Exalted untouched |
 | 18 | Greater Chaos Orb + Perfect Jeweller's Orb demoted from the white Divine look to the Abyssal Echoes styling; Perfect Chaos keeps Divine |
 | 19 | Essences use live Runes of Aldur prices: normal floor 0.10 divine, thin-market exception 0.25 divine; known lower-value essences are hidden |
-| 20 | Visible unique bases below the live 0.50-divine floor are hidden; ambiguity-protected bases such as Wide Belt, unique scepters, and special states remain visible. Socket exceptions use the real class thresholds (3+ for two-handed/body classes, 2+ for one-handed/armour classes); reviewed single-outcome Runeforging ingredients follow live value. |
+| 20 | Visible unique bases below the live 0.50-divine floor are hidden using the most valuable trusted droppable outcome. Any untrusted outcome protects the whole base; `PreventHiding` is advisory. Unique scepters, actual Vaal modifiers, corruption, quality, and exceptional sockets remain visible. Socket thresholds are 3+ for two-handed/body classes and 2+ for one-handed/armour classes. |
 | 21 | Lineage Support Gems use live prices: 0.50-divine floor with liquidity/chase safeguards; unknown API entries remain visible, while reviewed low-value names omitted by poe2scout can use narrow fallbacks |
 | 22 | Endgame Tier-5 rare gear hidden; Tier-5 magic gear hidden except Ancestral Tiara and Obliterator Bow crafting-base safeguards |
 | 23 | Twelve low-priority Ritual Omens are hidden for faster reward scanning; the selected Ritual Omens, Abyss-only Omens, and unknown/future Omens keep their normal rules |

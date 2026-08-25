@@ -1,8 +1,9 @@
 BEGIN {
 	# Rules disabled outright
-	nk = split("$type->ut->rare $tier->gear3a|$type->ut->rare $tier->j3a|$type->ut->rare $tier->j2a|$type->ut->rare $tier->j3b|$type->ut->rare $tier->anyremaining4j|$type->ut->magic $tier->gear3a|$type->ut->magic $tier->j3a|$type->ut->magic $tier->j2a|$type->ut->magic $tier->j3b|$type->ut->magic $tier->anyremaining4j|$type->gems->uncut $tier->othersupporteg|$type->rr->jewelleryeg $tier->t1 |$type->rr->jewelleryeg $tier->t2 |$type->rr->jewellery $tier->t1 |$type->endgame->normalcraft->economy $tier->group2t2 |$type->endgame->normalcraft->economy $tier->group3t2 |$type->gold $tier->stack2 ", KILL, "|")
-	# Optional unique rules stock ships commented out; 9L enables all of these
-	nu = split("$type->uniques $tier->overqualityuniques |$type->uniques $tier->oversocketuniques1 |$type->uniques $tier->oversocketuniques2 |$type->uniques $tier->loreweaverecipe |$type->uniques $tier->vaaltypeuniques ", UNCOMMENT, "|")
+	nk = split("$type->ut->rare $tier->gear3a|$type->ut->rare $tier->j3a|$type->ut->rare $tier->j2a|$type->ut->rare $tier->j3b|$type->ut->rare $tier->anyremaining4j|$type->ut->magic $tier->gear3a|$type->ut->magic $tier->j3a|$type->ut->magic $tier->j2a|$type->ut->magic $tier->j3b|$type->ut->magic $tier->anyremaining4j|$type->gems->uncut $tier->othersupporteg|$type->rr->jewelleryeg $tier->t1 |$type->rr->jewelleryeg $tier->t2 |$type->rr->jewellery $tier->t1 |$type->endgame->normalcraft->economy $tier->group2t2 |$type->endgame->normalcraft->economy $tier->group3t2 |$type->gold $tier->stack2 |$type->uniques $tier->vaaltypeuniques ", KILL, "|")
+	# Optional unique rules stock ships commented out; keep the four useful 9L rules.
+	# Plain IsVaalUnique items follow live value; only actual Vaal-modified states bypass the floor.
+	nu = split("$type->uniques $tier->overqualityuniques |$type->uniques $tier->oversocketuniques1 |$type->uniques $tier->oversocketuniques2 |$type->uniques $tier->loreweaverecipe ", UNCOMMENT, "|")
 	# Unique tiers stock hides that 9L shows
 	nf = split("$type->uniques $tier->t3boss |$type->uniques $tier->t3 ", FLIP, "|")
 	# Rules whose UnidentifiedItemTier >= 4 becomes >= 5
@@ -45,8 +46,9 @@ NR < 15 && /^#(name|version|realm|errors|hash|filterVersion|filterType|lastUpdat
 	print "# 8) Uncut Support Gems hidden in maps."
 	print "# 9) Runes: STOCK, untouched - plain/Lesser and Greater Adept-type runes stay hidden."
 	print "# 10) Endgame rare jewellery ([[1400]]) disabled entirely - matches 9L. Only tier-5 gear shows."
-	print "# 11) Uniques: ported 9L logic - T3 + T3-boss now SHOWN, and the 5 optional rules stock ships"
-	print "#     off are enabled (over-quality, over-socket x2, Loreweaver rings, Vaal-type). T4 stays hidden."
+	print "# 11) Uniques: ported 9L logic - T3 + T3-boss now SHOWN, and 4 optional rules stock ships"
+	print "#     off are enabled (over-quality, over-socket x2, Loreweaver rings). The plain Vaal-type"
+	print "#     rule stays off so cheap crafting ingredients follow live value. T4 stays hidden."
 	print "# 12) Economy crafting bases: only the ilvl 82 group survives (group1t1 + group1t2)."
 	print "#     group2t2 (ilvl 81) and group3t2 (ilvl 79) are disabled - that was the white Sacred Focus."
 	print "# 13) Uniques, $tier->hideable (184 bases): left HIDDEN, as stock. Verified against live prices -"
@@ -78,9 +80,9 @@ NR < 15 && /^#(name|version|realm|errors|hash|filterVersion|filterType|lastUpdat
 	print "#     known essences are hidden so stale NeverSink S/A/B/C labels cannot re-show them."
 	print "# 20) Uniques: the economy updater hides tracked visible bases below the live 0.50-divine"
 	print "#     floor, but keeps every unique Sceptre for same-class Vaal rerolling and preserves"
-	print "#     special corruption, Vaal, quality and genuinely exceptional socket states. NeverSink"
-	print "#     PreventHiding outcomes remain visible as ambiguity safeguards except reviewed,"
-	print "#     single-outcome Runeforging ingredients whose live value is authoritative."
+	print "#     special corruption, actual Vaal modifiers, quality and genuinely exceptional socket"
+	print "#     states. NeverSink PreventHiding is advisory: the most valuable trusted droppable outcome"
+	print "#     governs each unidentified base, while any untrusted outcome protects the whole base."
 	print "# 21) Lineage Support Gems: the economy updater uses live prices with liquidity/chase safeguards;"
 	print "#     unknown API entries remain visible, with narrow fallbacks for reviewed low-value omissions."
 	print "# 22) Endgame tier-5 rare/magic gear: all rare drops are hidden; magic drops are hidden except"
