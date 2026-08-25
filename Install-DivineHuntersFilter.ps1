@@ -372,11 +372,14 @@ function Show-Page {
     $backButton.Enabled = $state.Page -gt 0
     $nextButton.Text = if ($state.Page -eq ($pages.Count - 1)) { if ($updateMode) { 'UPDATE' } else { 'INSTALL' } } else { 'NEXT >' }
     $stepLabel.Text = "STEP $($state.Page + 1) OF $($pages.Count)"
-    $ritualCheck.Enabled = -not $updateMode
-    $ritualCheck.Text = if ($updateMode) { 'Ritual setting will be preserved during this update' } else { 'Enable the item filter inside Ritual rewards' }
+    # Existing installations are updates, but these remain choices rather than
+    # disabled status text. Disabled WinForms checkboxes ignore the themed light
+    # foreground and are unreadable against this dark surface.
+    $ritualCheck.Enabled = $true
+    $ritualCheck.Text = 'Enable the item filter inside Ritual rewards'
     if ($state.Page -eq ($pages.Count - 1)) {
         $action = if ($updateMode) { 'Update' } else { 'Install' }
-        $ritual = if ($updateMode) { 'Preserve current setting' } elseif ($ritualCheck.Checked) { 'Enable' } else { 'Leave unchanged' }
+        $ritual = if ($ritualCheck.Checked) { 'Enable' } else { 'Leave unchanged' }
         $summaryLabel.Text = "$action to:`r`n$($folderText.Text.Trim())`r`n`r`nFilter: Divine Hunters.filter`r`nCustom sounds: 5 included`r`nRitual filtering: $ritual"
     }
 }
@@ -423,9 +426,7 @@ $nextButton.Add_Click({
 
     try {
         $form.Cursor = [System.Windows.Forms.Cursors]::WaitCursor
-        $updateMode = Test-UpdateMode
-        $ritualSetting = if ($updateMode) { $false } else { $ritualCheck.Checked }
-        $result = Install-FilterFiles $folderText.Text.Trim() $ritualSetting
+        $result = Install-FilterFiles $folderText.Text.Trim() $ritualCheck.Checked
         $form.Cursor = [System.Windows.Forms.Cursors]::Default
         [System.Windows.Forms.MessageBox]::Show("Installation complete.`r`n`r`n$($result.Target)`r`n`r`n$($result.Ritual)`r`n`r`nReselect the filter in-game if Path of Exile 2 is already open.", 'Divine Hunters Filter Setup', 'OK', 'Information') | Out-Null
         $form.Close()

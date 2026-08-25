@@ -499,24 +499,20 @@ internal sealed class InstallerForm : Form
             ? (updateMode ? "UPDATE" : "INSTALL")
             : "NEXT >";
         stepLabel.Text = "STEP " + (pageIndex + 1) + " OF " + pages.Length;
-        ritualCheck.Enabled = !updateMode;
-        ritualCheck.Text = updateMode
-            ? "Ritual setting will be preserved during this update"
-            : "Enable the item filter inside Ritual rewards";
-        autoUpdateCheck.Enabled = !updateMode;
-        autoUpdateCheck.Text = updateMode
-            ? "Automatic update schedule will be left unchanged"
-            : "Check for filter updates daily";
+        // An existing filter used to turn these controls into disabled status text.
+        // Besides preventing a user from changing either choice, the Windows disabled
+        // checkbox renderer ignored our light ForeColor and made the text unreadable
+        // on the dark installer surface. Keep them as real, themed controls on updates.
+        ritualCheck.Enabled = true;
+        ritualCheck.Text = "Enable the item filter inside Ritual rewards";
+        autoUpdateCheck.Enabled = true;
+        autoUpdateCheck.Text = "Check for filter updates daily";
 
         if (pageIndex == pages.Length - 1)
         {
             string action = updateMode ? "Update" : "Install";
-            string ritual = updateMode
-                ? "Preserve current setting"
-                : ritualCheck.Checked ? "Enable" : "Leave unchanged";
-            string updates = updateMode
-                ? "Leave unchanged"
-                : autoUpdateCheck.Checked ? "Daily check" : "Disabled";
+            string ritual = ritualCheck.Checked ? "Enable" : "Leave unchanged";
+            string updates = autoUpdateCheck.Checked ? "Daily check" : "Disabled";
             summaryLabel.Text =
                 action + " to:\r\n" + folderBox.Text.Trim() +
                 "\r\n\r\nFilter: download current GitHub channel\r\nCustom sounds: verify/download 5\r\nRitual filtering: " + ritual +
@@ -618,11 +614,8 @@ internal sealed class InstallerForm : Form
         try
         {
             Cursor = Cursors.WaitCursor;
-            bool updateMode = IsUpdateMode();
-            InstallResult result = InstallerCore.Install(folderBox.Text.Trim(), updateMode ? false : ritualCheck.Checked);
-            string updateMessage = updateMode
-                ? InstallerCore.RefreshAutoUpdateIfEnabled(folderBox.Text.Trim())
-                : InstallerCore.ConfigureAutoUpdate(folderBox.Text.Trim(), autoUpdateCheck.Checked);
+            InstallResult result = InstallerCore.Install(folderBox.Text.Trim(), ritualCheck.Checked);
+            string updateMessage = InstallerCore.ConfigureAutoUpdate(folderBox.Text.Trim(), autoUpdateCheck.Checked);
             Cursor = Cursors.Default;
             MessageBox.Show(this,
                 "Installation complete.\r\n\r\n" + result.Target + "\r\n\r\n" + result.FilterMessage + "\r\n\r\n" + result.RitualMessage + "\r\n\r\n" + updateMessage + "\r\n\r\nReselect the filter in-game if Path of Exile 2 is already open.",

@@ -130,7 +130,7 @@ try {
     $exitCode = Invoke-TestExecutable $setup @('--update', $target)
     Assert ($exitCode -eq 0) "Legacy migration mode failed with exit code $exitCode."
     $recordedVersion = [IO.File]::ReadAllText((Join-Path $state 'installed-version.txt')).Trim([char]0xFEFF).Trim()
-    Assert ($recordedVersion -eq '1.4.0') "Migration mode recorded unexpected version: $recordedVersion"
+    Assert ($recordedVersion -eq '1.4.1') "Migration mode recorded unexpected version: $recordedVersion"
 
     [IO.File]::AppendAllText(
         (Join-Path $channel 'DivineHunters.filter'),

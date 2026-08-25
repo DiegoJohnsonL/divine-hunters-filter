@@ -113,9 +113,9 @@ Then:
 ### Publishing model
 
 - Initial rollout order matters: push these changes and wait for the rolling-channel workflow to
-  create `filter-latest`; only then publish the normal `v1.4.0` release with the rebuilt
+  create `filter-latest`; only then publish the normal installer release with the rebuilt
   `DivineHuntersSetup.exe` asset.
-- `v1.4.0` is the one-time migration installer release. It moves existing scheduled clients from
+- `v1.4.0` was the one-time migration installer release. It moved existing scheduled clients from
   executable downloads to the rolling content channel.
 - A push to `main` that changes `Divine Hunters.filter` or one of the five sounds validates and
   replaces those assets on the fixed `filter-latest` prerelease.
