@@ -59,7 +59,10 @@ Do not hide a unique base merely because most outcomes are cheap. An unidentifie
 for example, cannot be separated by unique name at filter time. If the same base can produce a
 chase unique, hiding the base can hide the chase drop too. The updater therefore preserves
 NeverSink `PreventHiding` bases, unique scepters, special corruption/Vaal/quality/socket states,
-and bases with insufficient evidence.
+and bases with insufficient evidence. Narrow, reviewed exceptions may let the live floor govern
+a single-outcome recipe ingredient when its market is liquid; do not generalise that exception
+to ambiguous or high-variance bases. Socket safeguards must mirror the class-aware stock rules:
+3+ for two-handed/body classes and 2+ for one-handed/armour classes.
 
 For the current thresholds and safety logic, read the **Useful parameters** and **Customisations**
 sections in `README.md`; do not copy threshold values into new code from memory.

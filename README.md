@@ -257,7 +257,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "_filter-economy-update.ps1"
 | `-LineageThinFloor` | `1.00` | Thin-market lineage-support floor. |
 | `-LineageThinMinListings` | `3` | Minimum listings at the thin-market lineage floor. |
 | `-LineageChaseFloor` | `2.00` | Always retain a priced lineage support at or above this value. |
-| `-UniqueFloor` | `0.50` | Hide tracked visible unique bases below this value; `PreventHiding` bases, unique scepters, and special states remain visible. |
+| `-UniqueFloor` | `0.50` | Hide tracked visible unique bases below this value; ambiguity-protected `PreventHiding` bases, unique scepters, and special states remain visible. Reviewed single-outcome recipe ingredients still follow the floor. |
 | `-BaseFilter` | auto | Force a specific base instead of the freshest cached one. |
 | `-Output` | installed path | Write somewhere else. |
 
@@ -337,7 +337,7 @@ reproduced in the filter's own header. Summary:
 | 17 | Exalted Orb + Greater Exalted hidden at any stack; Vaal Orb only in stacks of 2+; Perfect Exalted untouched |
 | 18 | Greater Chaos Orb + Perfect Jeweller's Orb demoted from the white Divine look to the Abyssal Echoes styling; Perfect Chaos keeps Divine |
 | 19 | Essences use live Runes of Aldur prices: normal floor 0.10 divine, thin-market exception 0.25 divine; known lower-value essences are hidden |
-| 20 | Visible unique bases below the live 0.50-divine floor are hidden; `PreventHiding` bases such as Wide Belt, unique scepters, and special states remain visible |
+| 20 | Visible unique bases below the live 0.50-divine floor are hidden; ambiguity-protected bases such as Wide Belt, unique scepters, and special states remain visible. Socket exceptions use the real class thresholds (3+ for two-handed/body classes, 2+ for one-handed/armour classes); reviewed single-outcome Runeforging ingredients follow live value. |
 | 21 | Lineage Support Gems use live prices: 0.50-divine floor with liquidity/chase safeguards; unknown API entries remain visible, while reviewed low-value names omitted by poe2scout can use narrow fallbacks |
 | 22 | Endgame Tier-5 rare gear hidden; Tier-5 magic gear hidden except Ancestral Tiara and Obliterator Bow crafting-base safeguards |
 | 23 | Twelve low-priority Ritual Omens are hidden for faster reward scanning; the selected Ritual Omens, Abyss-only Omens, and unknown/future Omens keep their normal rules |

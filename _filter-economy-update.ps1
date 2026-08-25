@@ -164,14 +164,33 @@ if ($needAspects) {
 $noDrop          = @{}
 $aspectBase       = @{}
 $preventHideBases = @{}
+$droppableNamesByBase = @{}
+# These single-outcome Runeforging ingredients have been reviewed against the live
+# market. Their recipe eligibility alone is not a reason to defeat the pickup floor;
+# if demand ever makes them valuable, the normal price promotion restores them.
+$preventHidePriceFloorOverrides = @{
+    'Leaden Greathammer' = $true # Chober Chaber
+    'Torn Gloves'        = $true # Painter's Servant
+}
 $aspects = ([System.IO.File]::ReadAllText($aspectFile, (New-Object System.Text.UTF8Encoding($false))) | ConvertFrom-Json).Aspects
 foreach ($baseProp in $aspects.PSObject.Properties) {
     foreach ($u in $baseProp.Value) {
-        if ($u.Aspects -contains 'NonWorldDrop' -or $u.Aspects -contains 'NonDrop') { $noDrop[$u.Name] = $true }
+        $isNonDrop = $u.Aspects -contains 'NonWorldDrop' -or $u.Aspects -contains 'NonDrop'
+        if ($isNonDrop) { $noDrop[$u.Name] = $true }
         if (-not [string]::IsNullOrWhiteSpace($u.BaseType)) {
             $aspectBase[$u.Name] = $u.BaseType
             if ($u.Aspects -contains 'PreventHiding') { $preventHideBases[$u.BaseType] = $true }
+            if (-not $isNonDrop) {
+                if (-not $droppableNamesByBase.ContainsKey($u.BaseType)) { $droppableNamesByBase[$u.BaseType] = @() }
+                $droppableNamesByBase[$u.BaseType] = @($droppableNamesByBase[$u.BaseType]) + @($u.Name)
+            }
         }
+    }
+}
+foreach ($base in $preventHidePriceFloorOverrides.Keys) {
+    $outcomes = @($droppableNamesByBase[$base])
+    if ($outcomes.Count -ne 1) {
+        throw "Reviewed PreventHiding override '$base' now has $($outcomes.Count) world-droppable outcomes; review before allowing the live price floor to hide it."
     }
 }
 Say "aspects     : $($aspectBase.Count) uniques mapped, $($noDrop.Count) flagged as non-world-drop, $($preventHideBases.Count) protected bases"
@@ -466,14 +485,18 @@ $uniqueHide = @()
 foreach ($entry in $best.GetEnumerator()) {
     $base = $entry.Key
     $row  = $entry.Value
+    $protectedByAspect = $preventHideBases.ContainsKey($base) -and
+        -not $preventHidePriceFloorOverrides.ContainsKey($base)
     if ($current.ContainsKey($base) -and $current[$base] -gt 0 -and
         -not $uncertainBases.ContainsKey($base) -and
-        -not $preventHideBases.ContainsKey($base) -and $row.Div -lt $UniqueFloor) {
+        -not $protectedByAspect -and $row.Div -lt $UniqueFloor) {
         $uniqueHide += [pscustomobject]@{ Base = $base; Div = $row.Div; Name = $row.Name; Qty = $row.Qty; History = $row.History; Mode = $row.Mode }
     }
 }
 $uniqueHide = @($uniqueHide | Sort-Object -Property Div, Base)
-Say "unique floor : hide $($uniqueHide.Count) tracked visible bases below $UniqueFloor div; preserve $($preventHideBases.Count) PreventHiding and $($uncertainBases.Count) uncertain bases plus scepters/special states"
+$effectivePreventHideCount = @($preventHideBases.Keys | Where-Object { -not $preventHidePriceFloorOverrides.ContainsKey($_) }).Count
+Say "unique floor : hide $($uniqueHide.Count) tracked visible bases below $UniqueFloor div; preserve $effectivePreventHideCount PreventHiding and $($uncertainBases.Count) uncertain bases plus scepters/special states"
+Say "             reviewed price-floor overrides: $(@($preventHidePriceFloorOverrides.Keys | Sort-Object) -join ', ')"
 
 # ------------------------------------------------------------- 6. decide changes
 $promoS = @(); $promoA = @(); $promoB = @(); $quiet = @(); $unknown = @()
@@ -650,7 +673,7 @@ $uniquePolicyBlock = @(
     '#===============================================================================================================',
     "# Generated $stamp from api.poe2scout.com | league: $League | 1 divine = $([math]::Round($divine)) ex",
     "# Plain visible unique bases below $UniqueFloor div are hidden after these exceptions.",
-    '# Bases containing NeverSink PreventHiding outcomes remain visible even when liquid variants are cheap.',
+    '# NeverSink PreventHiding outcomes remain visible except reviewed single-outcome recipe ingredients.',
     '# Unique scepters stay visible because same-class Vaal rerolling can produce valuable scepter outcomes.',
     '# Special corruption, Vaal, quality and socket states stay visible for identification/crafting value.',
     ''
@@ -669,8 +692,10 @@ $uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] corrupted en
     @('AnyEnchantment True','Corrupted True','Rarity Unique') $uniqueSpecialStyle
 $uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] over-quality uniques' `
     @('Quality >= 21','Rarity Unique') $uniqueSpecialStyle
-$uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] socket-rich uniques' `
-    @('Sockets >= 2','Rarity Unique') $uniqueSpecialStyle
+$uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] exceptional-socket uniques - two-handed/body classes' `
+    @('Sockets >= 3','Rarity Unique','Class == "Body Armours" "Bows" "Crossbows" "Quarterstaves" "Staves" "Talismans" "Two Hand Maces"') $uniqueSpecialStyle
+$uniquePolicyBlock += UniqueConditionRule 'Show # [CUSTOM][ECONOMY] exceptional-socket uniques - one-handed/armour classes' `
+    @('Sockets >= 2','Rarity Unique','Class == "Boots" "Bucklers" "Foci" "Gloves" "Helmets" "One Hand Maces" "Sceptres" "Shields" "Spears" "Wands"') $uniqueSpecialStyle
 $uniquePolicyBlock += Rule "Hide # [CUSTOM][ECONOMY] visible unique bases below $UniqueFloor div" $uniqueHide `
     @('SetFontSize 18','SetBackgroundColor 20 20 0 0')
 $uniquePolicyBlock += @(
