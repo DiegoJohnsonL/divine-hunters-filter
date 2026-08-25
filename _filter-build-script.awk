@@ -81,7 +81,7 @@ NR < 15 && /^#(name|version|realm|errors|hash|filterVersion|filterType|lastUpdat
 	print "#     special corruption, Vaal, quality and socket states. Bases with NeverSink PreventHiding"
 	print "#     outcomes (including Wide Belt) remain visible as ambiguity safeguards."
 	print "# 21) Lineage Support Gems: the economy updater uses live prices with liquidity/chase safeguards;"
-	print "#     unknown or unpriced names remain visible."
+	print "#     unknown API entries remain visible, with narrow fallbacks for reviewed low-value omissions."
 	print "# 22) Endgame tier-5 rare/magic gear: all rare drops are hidden; magic drops are hidden except"
 	print "#     Ancestral Tiara and Obliterator Bow as narrow crafting-base safeguards."
 	print "# 23) Ritual reward scanning: 12 known low-priority Ritual Omens are hidden above the whole"

@@ -98,8 +98,10 @@ thin unique markets and keeps unknown or insufficiently evidenced items visible.
 
 - Unique history and confidence logic: search `_filter-economy-update.ps1` for
   `UniqueHistoryMinPoints`, `history-median`, and `history-floor`.
-- Lineage supports: search for `lineagesupportgems`, `lineageAliases`, `lineageShow`,
-  `lineageKeep`, and `lineageHide`. Unknown/unpriced names are a deliberate safety net.
+- Lineage supports: search for `lineagesupportgems`, `lineageAliases`,
+  `lineageMissingLowValue`, `lineageShow`, `lineageKeep`, and `lineageHide`.
+  Unknown/unpriced API entries are a deliberate safety net; reviewed low-value names that are
+  entirely absent from poe2scout may use a narrow fallback until the live API publishes them.
 - Essences/Runes of Aldur: inspect the live price and history block; do not infer value from a
   stale NeverSink tier label alone.
 - Unique drop/base mapping: inspect the cached `uniques.aspects.json` and the upstream aspects

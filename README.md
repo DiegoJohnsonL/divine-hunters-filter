@@ -338,7 +338,7 @@ reproduced in the filter's own header. Summary:
 | 18 | Greater Chaos Orb + Perfect Jeweller's Orb demoted from the white Divine look to the Abyssal Echoes styling; Perfect Chaos keeps Divine |
 | 19 | Essences use live Runes of Aldur prices: normal floor 0.10 divine, thin-market exception 0.25 divine; known lower-value essences are hidden |
 | 20 | Visible unique bases below the live 0.50-divine floor are hidden; `PreventHiding` bases such as Wide Belt, unique scepters, and special states remain visible |
-| 21 | Lineage Support Gems use live prices: 0.50-divine floor with liquidity/chase safeguards; unknown or unpriced names remain visible |
+| 21 | Lineage Support Gems use live prices: 0.50-divine floor with liquidity/chase safeguards; unknown API entries remain visible, while reviewed low-value names omitted by poe2scout can use narrow fallbacks |
 | 22 | Endgame Tier-5 rare gear hidden; Tier-5 magic gear hidden except Ancestral Tiara and Obliterator Bow crafting-base safeguards |
 | 23 | Twelve low-priority Ritual Omens are hidden for faster reward scanning; the selected Ritual Omens, Abyss-only Omens, and unknown/future Omens keep their normal rules |
 

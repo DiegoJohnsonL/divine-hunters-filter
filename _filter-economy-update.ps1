@@ -271,6 +271,11 @@ foreach ($history in @($priceHistoryResponse.ItemHistories)) {
 # Canonicalising this one alias prevents the zero-price old row from affecting the
 # current Dominus' Grasp entry.
 $lineageAliases = @{ "Piety's Mercy" = "Dominus' Grasp" }
+# A stock lineage can exist in the game and NeverSink tierlist before poe2scout adds
+# it to the item snapshot. Keep missing names visible by default, but hide narrowly
+# reviewed low-value omissions until the live API begins publishing them. Once a name
+# appears in poe2scout, the normal live-value policy automatically takes authority.
+$lineageMissingLowValue = @("Helbrym's Hide")
 $lineageByBase = @{}
 $lineageShow = @()
 $lineageHide = @()
@@ -327,6 +332,14 @@ foreach ($row in $lineageByBase.Values) {
     }
     else {
         $lineageHide += $row
+    }
+}
+foreach ($base in $lineageMissingLowValue) {
+    if (-not $lineageByBase.ContainsKey($base)) {
+        $lineageHide += [pscustomobject]@{
+            Base = $base; CurrentEx = 0; StableEx = 0; Div = 0; Qty = 0; History = 0; ItemId = 0
+        }
+        Say ('   !lineage  {0,-30} reviewed low-value fallback (missing from poe2scout)' -f $base)
     }
 }
 $lineageShow = @($lineageShow | Sort-Object Div -Descending)
@@ -584,7 +597,7 @@ $lineageBlock = @(
     '#===============================================================================================================',
     "# Generated $stamp from api.poe2scout.com | league: $League | 1 divine = $([math]::Round($divine)) ex",
     "# Normal floor: $LineageFloor div with $LineageMinListings+ listings; thin floor: $LineageThinFloor div with $LineageThinMinListings+ listings; chase floor: $LineageChaseFloor div.",
-    '# Unknown or unpriced lineage supports remain visible so new content and thin markets cannot be hidden accidentally.',
+    '# Unknown or unpriced API entries remain visible; reviewed low-value names missing from poe2scout use a narrow fallback.',
     ''
 )
 $lineageBlock += LineageRule "Show # [CUSTOM][ECONOMY] lineage support value floor >= $LineageFloor div" $lineageShow $lineageValueStyle
